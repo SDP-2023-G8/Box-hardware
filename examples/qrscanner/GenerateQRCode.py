@@ -4,5 +4,5 @@ file = "./data/"
 
 
 def get_qrcode(data):
-	img = qrcode.make(data)
-	img.save(file + 'tmp.png')
+    img = qrcode.make(data)
+    img.save(file + 'qrcode.png')
