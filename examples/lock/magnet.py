@@ -2,7 +2,7 @@ from motors import Motors
 from time import time, sleep 
 
 magnet = Motors() 
-port = 0         
+port = 3         
 speed = 255         
 
  
