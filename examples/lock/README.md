@@ -1,2 +1,2 @@
 # Usage
-test.py will start the electromagnet 2s and stop
+test.py will lock 10s and then unlock
