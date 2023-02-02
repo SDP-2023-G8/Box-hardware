@@ -1,6 +1,6 @@
 import magnet
 from time import time, sleep
-runtime = 10
+run_time = 10
 
 magnet.lock()
 
