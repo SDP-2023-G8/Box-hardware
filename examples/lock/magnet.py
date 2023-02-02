@@ -3,7 +3,7 @@ from time import time, sleep
 
 magnet = Motors() 
 port = 0         
-speed = 100          
+speed = 255         
 
  
 def lock():
