@@ -4,7 +4,7 @@ from rclpy.node import Node
 from std_msgs.msg import String
 from example_interfaces.srv import SetBool
 
-import magnet
+# import magnet
 from time import time, sleep
 
 
@@ -16,11 +16,11 @@ class LockService(Node):
 
     def callback(self, request, response):
         if (request.data):
-            self.get_logger().info('Incoming request\na: %d b: %d' % (request.data))
+            self.get_logger().info('door lock')
         else:
-            self.get_logger().info('Incoming request\na: %d b: %d' % (request.data))
-
-        return True
+            self.get_logger().info('door unlock')
+        response.success = True
+        return response
 
 
 def main():
