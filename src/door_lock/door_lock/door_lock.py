@@ -99,11 +99,11 @@ class LockService(Node):
         self.srv = self.create_service(SetBool, 'lock', self.callback)
 
     def callback(self, request, response):
-        if (request.data):
-            lock()
+        if (request.data == True):
+            # lock()
             self.get_logger().info('door lock')
         else:
-            unlock()
+            # unlock()
             self.get_logger().info('door unlock')
         response.success = True
         return response

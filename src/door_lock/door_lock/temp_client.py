@@ -25,7 +25,7 @@ def main():
     rclpy.init()
 
     minimal_client = MinimalClientAsync()
-    response = minimal_client.send_request(bool(sys.argv[1]))
+    response = minimal_client.send_request(sys.argv[1]==1)
     minimal_client.get_logger().info(
         'Result of request:')
 
