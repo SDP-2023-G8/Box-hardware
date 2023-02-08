@@ -96,7 +96,7 @@ class LockService(Node):
 
     def __init__(self):
         super().__init__('lock_service')
-        self.srv = self.create_service(SetBool, 'lock', self.callback)
+        self.srv = self.create_service(SetBool, '~/lock', self.callback)
 
     def callback(self, request, response):
         if (request.data == True):
