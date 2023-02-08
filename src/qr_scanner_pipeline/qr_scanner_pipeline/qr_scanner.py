@@ -10,7 +10,6 @@ import cv2
 class QRCodeNode(Node):
     def __init__(self):
         super().__init__("QRCodeNode")
-        self.get_logger().set_level(rclpy.logging.LoggingSeverity.DEBUG)
         self.get_logger().info("*** Initializing QR scanner node. ***")
 
         # Camera
