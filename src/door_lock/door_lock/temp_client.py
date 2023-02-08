@@ -1,6 +1,6 @@
 import sys
 
-from example_interfaces.srv import SetBool
+from std_srvs.srv import SetBool
 import rclpy
 from rclpy.node import Node
 
