@@ -27,7 +27,13 @@ def main():
     minimal_client = MinimalClientAsync()
     response = minimal_client.send_request(sys.argv[1]==1)
     minimal_client.get_logger().info(
-        'Result of request:%b' %response.success)
+            'input%d' %sys.argv[1])
+    if (response.success):
+        minimal_client.get_logger().info(
+            'Result of request: True')
+    else:
+        minimal_client.get_logger().info(
+            'Result of request: error')
 
     minimal_client.destroy_node()
     rclpy.shutdown()
