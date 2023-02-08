@@ -16,7 +16,7 @@ class QRCodeNode(Node):
         # Camera
         self.cap_ = cv2.VideoCapture(0)
         self.detector_ = cv2.QRCodeDetector()
-        self.get_logger().debug("Camera initialized.")
+        self.get_logger().info("Camera initialized.")
 
         # QR message publisher
         self.qr_dec_pub_ = self.create_publisher(String, "~/qr_decoded", 10)
