@@ -100,8 +100,10 @@ class LockService(Node):
 
     def callback(self, request, response):
         if (request.data):
+            lock()
             self.get_logger().info('door lock')
         else:
+            unlock()
             self.get_logger().info('door unlock')
         response.success = True
         return response
