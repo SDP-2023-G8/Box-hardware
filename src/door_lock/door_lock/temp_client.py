@@ -27,7 +27,7 @@ def main():
     minimal_client = MinimalClientAsync()
     response = minimal_client.send_request(int(sys.argv[1])==1)
     minimal_client.get_logger().info(
-            'input%d' %sys.argv[1])
+            'input%d' %int(sys.argv[1]))
     if (response.success):
         minimal_client.get_logger().info(
             'Result of request: True')
