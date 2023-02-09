@@ -93,7 +93,7 @@ class StateMachine(Node):
         rclpy.spin_until_future_complete(self, door_future)
         return door_future.result()
       
-    def verifyQR(msg):
+    def verifyQR(self, msg):
         # TODO
         return True
     
