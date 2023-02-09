@@ -1,7 +1,7 @@
 # File containing unit tests for QR Verify
 # @author Josflesan
 
-from qr_verify import QRVerify
+from qr_verify.qr_verify import QRVerify
 import unittest
 
 class TestQrVerify(unittest.TestCase):

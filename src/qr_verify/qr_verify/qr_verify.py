@@ -6,7 +6,7 @@ import requests
 import json
 from dotenv import dotenv_values
 
-config = dotenv_values("src/qr_verify/firebase-settings.env")
+config = dotenv_values("qr_verify/firebase-settings.env")
 
 class QRVerify:
     '''
@@ -81,3 +81,12 @@ class QRVerify:
             requests.patch(f"http://{self._hostname}:{self._port}/deliveries/{deliveryId}.json/?ns=inbox-sdp", data=json.dumps(payload))
         else:
             requests.patch(f"https://{config['CLOUD_DB_HOSTNAME']}/deliveries/{deliveryId}.json", data=json.dumps(payload))            
+
+def main():
+    '''
+    Main method added so package is viewable by the colcon package manager
+    '''
+    verifier = QRVerify()
+
+if __name__ == "__main__":
+    main()
