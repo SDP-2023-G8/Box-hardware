@@ -91,7 +91,7 @@ class StateMachine(Node):
         door_future = self.door_lock_client_.call_async(door_req)
         self.get_logger().info("Waiting for the door to be locked.")
         rclpy.spin_until_future_complete(self, door_future)
-        return self.future.result()
+        return door_future.result()
       
     def verifyQR(msg):
         # TODO
