@@ -20,7 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'door_lock = door_lock.door_lock:main'
+            'door_lock = door_lock.door_lock:main',
+			'client = door_lock.temp_client:main',
         ],
     },
 )
