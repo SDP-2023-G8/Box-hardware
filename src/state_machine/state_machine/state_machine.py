@@ -81,6 +81,7 @@ class StateMachine(Node):
                 self.get_logger().debug("Door lock response: {0}.".format(result))
                 if not result.success:
                     self.get_logger().error("Failed to unlock the door.")
+                self.get_logger().info("Door unlocked.")
                 # Stop listening for QR messages
                 self.qr_msg_subscription.destroy()
                 self.CURRENT_STATE_ = State.DOOR_OPENED
