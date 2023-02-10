@@ -111,7 +111,7 @@ class StateMachine(Node):
         door_req = self.LOCK_SERVICE_TYPE.Request()
         door_req.data = data
         door_future = self.door_lock_client_.call_async(door_req)
-        self.get_logger().info("Waiting for the door to be locked.")
+        self.get_logger().info("Sending a request to the door lock service")
         rclpy.spin_until_future_complete(self, door_future)
         return door_future.result()
       
