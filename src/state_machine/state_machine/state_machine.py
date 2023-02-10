@@ -32,6 +32,7 @@ class StateMachine(Node):
     def __init__(self):
         super().__init__("state_machine")
         self.init_params()
+        self.submitted_qrs_ = set()
 
         # Current state publisher
         self.state_pub_ = self.create_publisher(self.STATE_PUB_TYPE, self.STATE_PUB_TOPIC_NAME_, 10)
@@ -84,7 +85,6 @@ class StateMachine(Node):
         self.get_logger().info("Door locked.")
         self.CURRENT_STATE_ = State.WAITING_FOR_QR
         # Start QR subscription
-        # TODO replace with a service server
         self.qr_msg_subscription= self.create_subscription(
             self.QR_MSG_TYPE, 
             self.QR_TOPIC_NAME, 
@@ -110,6 +110,9 @@ class StateMachine(Node):
         if self.CURRENT_STATE_ != State.WAITING_FOR_QR:
             return
         msg_content = msg.data
+        if msg_content in self.submitted_qrs_:
+            return
+        self.submitted_qrs_.add(msg_content)
         self.get_logger().info("Received a QR message: {0}".format(msg_content))
         self.set_state_(State.DOOR_OPENED, qr_msg=msg_content)
 
