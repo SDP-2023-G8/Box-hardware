@@ -92,7 +92,6 @@ class StateMachine(Node):
             self.QR_TOPIC_NAME, 
             self.qr_msg_callback,
             1)
-        return True
 
     def init_open_state(self):
         self.CURRENT_STATE_ = State.DOOR_OPENED
