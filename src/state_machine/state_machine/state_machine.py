@@ -34,9 +34,7 @@ class StateMachine(Node):
         self.init_params()
 
         # Current state publisher
-        # qos = QoSProfile()
-        # qos.history
-        self.state_pub_ = self.create_publisher(self.STATE_PUB_TYPE, self.STATE_PUB_TOPIC_NAME_, 1)
+        self.state_pub_ = self.create_publisher(self.STATE_PUB_TYPE, self.STATE_PUB_TOPIC_NAME_, 10)
         self.get_logger().info("Current state publisher topic name: {0}".format(self.state_pub_.topic_name))
         self.pub_timer = self.create_timer(1. / self.state_pub_freq_.value, self.publish_state)
 
@@ -86,11 +84,12 @@ class StateMachine(Node):
         self.get_logger().info("Door locked.")
         self.CURRENT_STATE_ = State.WAITING_FOR_QR
         # Start QR subscription
+        # TODO replace with a service server
         self.qr_msg_subscription= self.create_subscription(
             self.QR_MSG_TYPE, 
             self.QR_TOPIC_NAME, 
             self.qr_msg_callback,
-            10)
+            1)
         return True
 
     def init_open_state(self):
