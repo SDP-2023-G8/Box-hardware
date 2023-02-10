@@ -13,3 +13,8 @@ You only need to do it once.<br/>
 3. If the build was successful, run <br/>
 `.install/setup.bash` <br/>
 Then, run the node of your choice using `ros2 run` or `ros2 launch`
+## Run the state machine
+1. Open 3 terminals (run ./run_docker.sh, colcon build and . install/setup.bash before) <br/>
+1.1 Terminal 1: ros2 run door_lock door_lock <br/>
+1.2 Terminal 2: ros2 launch state_machine state_machine.launch.py <br/>
+1.3 Terminal 3: ros2 launch qr_scanner_pipeline qr_scanner.launch.py <br/>
