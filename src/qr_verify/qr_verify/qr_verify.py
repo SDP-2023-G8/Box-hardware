@@ -6,7 +6,7 @@ import requests
 import json
 from dotenv import dotenv_values
 
-config = dotenv_values("qr_verify/firebase-settings.env")
+config = dotenv_values("firebase-settings.env")
 
 class QRVerify:
     '''
@@ -53,7 +53,7 @@ class QRVerify:
         if self._emulated:
             resp = requests.get(f"http://{self._hostname}:{self._port}/deliveries/{deliveryId}.json/?ns=inbox-sdp")
         else:
-            resp = requests.get(f"https://{config['CLOUD_DB_HOSTNAME']}/deliveries/{deliveryId}.json")
+            resp = requests.get(f"https://inbox-sdp-default-rtdb.europe-west1.firebasedatabase.app/deliveries/{deliveryId}.json")
 
         jsonObject = resp.json()
 
@@ -80,7 +80,7 @@ class QRVerify:
         if self._emulated:
             requests.patch(f"http://{self._hostname}:{self._port}/deliveries/{deliveryId}.json/?ns=inbox-sdp", data=json.dumps(payload))
         else:
-            requests.patch(f"https://{config['CLOUD_DB_HOSTNAME']}/deliveries/{deliveryId}.json", data=json.dumps(payload))            
+            requests.patch(f"https://inbox-sdp-default-rtdb.europe-west1.firebasedatabase.app/deliveries/{deliveryId}.json", data=json.dumps(payload))            
 
 def main():
     '''
