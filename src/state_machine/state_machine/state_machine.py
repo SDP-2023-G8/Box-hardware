@@ -1,6 +1,6 @@
 # Python
 from enum import Enum
-import time
+import asyncio
 
 # ROS
 import rclpy
@@ -86,13 +86,13 @@ class StateMachine(Node):
                 # Stop listening for QR messages
                 self.qr_msg_subscription.destroy()
                 self.CURRENT_STATE_ = State.DOOR_OPENED
-                self.hold_door_open(5)
+                self.lock_future = self.hold_door_open(5)
             else:
                 self.get_logger().info("QR code not authorized.")
 
-    def hold_door_open(self, delay):
+    async def hold_door_open(self, delay):
         self.get_logger().info("Door opened for {0}s.".format(delay))
-        time.sleep(delay)
+        await asyncio.sleep(delay)
         self.get_logger().info("Locking the door...")
 
         # Lock the door
