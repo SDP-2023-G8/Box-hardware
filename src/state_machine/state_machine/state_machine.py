@@ -87,6 +87,7 @@ class StateMachine(Node):
                 self.qr_msg_subscription.destroy()
                 self.CURRENT_STATE_ = State.DOOR_OPENED
                 self.lock_future = self.hold_door_open(5)
+                rclpy.spin_until_future_complete(self, self.lock_future)
             else:
                 self.get_logger().info("QR code not authorized.")
 
