@@ -10,6 +10,8 @@ from rclpy.executors import SingleThreadedExecutor, MultiThreadedExecutor
 from std_srvs.srv import SetBool
 from std_msgs.msg import String
 
+from qr_verify.qr_verify import QRVerify
+
 
 class State(Enum):
     INIT = 0
@@ -103,8 +105,8 @@ class StateMachine(Node):
         return door_fut
       
     def verifyQR(self, msg):
-        # TODO
-        return True
+        verifier = QRVerify()
+        return verifier.verify(msg)
     
     def qr_msg_callback(self, msg):
         if self.CURRENT_STATE_ != State.WAITING_FOR_QR:
