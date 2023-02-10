@@ -1,5 +1,6 @@
 # Python
 from enum import Enum
+import asyncio
 
 # ROS
 import rclpy
@@ -52,7 +53,6 @@ class StateMachine(Node):
 
         self.get_logger().info("*** Parameters initialized successfully ***")
 
-
     def set_state_(self, new_state, **kwargs):
         self.get_logger().info("State {0} requested.".format(str(self.CURRENT_STATE_)))
 
@@ -77,6 +77,7 @@ class StateMachine(Node):
             qr_msg = kwargs['qr_msg']
             self.get_logger().info("Veryfing QR: {0}".format(qr_msg))
             if self.verifyQR(qr_msg):
+                self.get_logger().info("QR code authorized.")
                 result = self.send_door_request(False)
                 self.get_logger().debug("Door lock response: {0}.".format(result))
                 if not result.success:
@@ -85,6 +86,26 @@ class StateMachine(Node):
                 # Stop listening for QR messages
                 self.qr_msg_subscription.destroy()
                 self.CURRENT_STATE_ = State.DOOR_OPENED
+                self.lock_future = self.hold_door_open(5)
+            else:
+                self.get_logger().info("QR code not authorized.")
+
+    async def hold_door_open(self, delay):
+        self.get_logger().info("Door opened for {0}s.".format(delay))
+        await asyncio.sleep(delay)
+        self.get_logger().info("Locking the door...")
+
+        # Lock the door
+        result = self.send_door_request(True)
+        self.get_logger().debug("Door lock response: {0}.".format(result))
+        if not result.success:
+            self.get_logger().error("Failed to unlock the door.")
+            return False
+        self.get_logger().info("Door locked.")
+
+        # Change the state
+        self.set_state_(State.WAITING_FOR_QR)
+        return True
 
     def send_door_request(self, data):
         door_req = self.LOCK_SERVICE_TYPE.Request()
