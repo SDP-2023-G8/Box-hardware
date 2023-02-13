@@ -1,10 +1,10 @@
 from setuptools import setup
 
-package_name = 'door_lock'
+package_name = 'qr_verify'
 
 setup(
     name=package_name,
-    version='0.0.0',
+    version='1.0.0',
     packages=[package_name],
     data_files=[
         ('share/ament_index/resource_index/packages',
@@ -13,15 +13,14 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='root',
-    maintainer_email='root@todo.todo',
-    description='TODO: Package description',
-    license='TODO: License declaration',
+    maintainer='Josué Fleitas',
+    maintainer_email='josue.fle.sanc@gmail.com',
+    description='A simple verifier library to authenticate a delivery',
+    license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'door_lock = door_lock.door_lock:main',
-			'client = door_lock.temp_client:main',
+            'qr_verify = qr_verify.qr_verify:main'
         ],
     },
 )
