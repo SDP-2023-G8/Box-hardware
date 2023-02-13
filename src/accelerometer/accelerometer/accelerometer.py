@@ -24,17 +24,18 @@ class Pub_accelerometer(Node):
         msg.header.stamp = self.get_clock().now().to_msg()
         msg.header.frame_id = "base_link"
 
-        i2c = busio.I2C(board.SCL, board.SDA)                # Remove this line if using SPI
-        int1 = digitalio.DigitalInOut(board.D24)             # Remove this line if using SPI
-        lis3dh = adafruit_lis3dh.LIS3DH_I2C(i2c, int1=int1)
-        x, y, z = lis3dh.acceleration
+        # i2c = busio.I2C(board.SCL, board.SDA)                # Remove this line if using SPI
+        # int1 = digitalio.DigitalInOut(board.D24)             # Remove this line if using SPI
+        # lis3dh = adafruit_lis3dh.LIS3DH_I2C(i2c, int1=int1)
+        # x, y, z = lis3dh.acceleration
+        x, y, z = 1.0, 0.0, -1.0
 
-        msg.accel.linear.x += 'acc x: %d\n' % x
-        msg.accel.linear.y += 'acc y: %d\n' % y
-        msg.accel.linear.z += 'acc z: %d\n' % z
+        msg.accel.linear.x = x
+        msg.accel.linear.y = y
+        msg.accel.linear.z = z
 
         self.publisher_.publish(msg)
-        self.get_logger().info('Publishing: "%s"' % msg.data)
+        self.get_logger().info('Publishing: "%s"' % msg)
         self.i += 1
 
 
