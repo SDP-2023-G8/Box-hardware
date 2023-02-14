@@ -15,5 +15,5 @@ You only need to do it once.<br/>
 Then, run the node of your choice using `ros2 run` or `ros2 launch`
 ## Run the state machine
 1. Open a terminal <br/>
-2. Run `./run_docker.sh`, `colcon build` and `. install/setup.bash` <br/>
+2. Run `./run_docker_interactive.sh`, `colcon build` and `. install/setup.bash` <br/>
 3. Run `ros2 launch launch/box.launch.py` <br/>
