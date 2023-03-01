@@ -22,7 +22,6 @@ class Pub_accelerometer(Node):
     def timer_callback(self):
         msg = AccelStamped()
         msg.header.stamp = self.get_clock().now().to_msg()
-        msg.header.frame_id = "base_link"
 
         # i2c = busio.I2C(board.SCL, board.SDA)                # Remove this line if using SPI
         # int1 = digitalio.DigitalInOut(board.D24)             # Remove this line if using SPI
