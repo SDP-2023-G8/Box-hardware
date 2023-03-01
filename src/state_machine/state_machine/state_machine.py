@@ -31,6 +31,7 @@ class StateMachine(Node):
     LOCK_SERVICE_TYPE = SetBool
 
     current_state_ = State.INIT
+    door_open_time_ = 5
  
     def __init__(self):
         super().__init__("state_machine")
@@ -47,8 +48,11 @@ class StateMachine(Node):
         self.get_logger().info("Door lock service server name: {0}; service type: {1}".format(
             self.door_lock_client_.srv_name,
             self.door_lock_client_.srv_type))
-        self.set_state_(State.DOOR_CLOSED)
-
+        
+        # Lock the door
+        self.send_door_request(True)
+        self.init_waiting_state()
+        self.get_logger().info("Created a new subscription to {0}".format(self.qr_msg_subscription.topic_name))
 
     def init_params(self):
         self.get_logger().info("*** Initializing params ***")
@@ -57,32 +61,6 @@ class StateMachine(Node):
         self.get_logger().info("State publisher frequency: {0}Hz".format(self.state_pub_freq_.value))
 
         self.get_logger().info("*** Parameters initialized successfully ***")
-
-    def set_state_(self, new_state, **kwargs):
-        self.get_logger().info("State {0} requested.".format(str(new_state)))
-        if self.current_state_ == new_state:
-            return
-
-        if new_state == State.DOOR_CLOSED:
-            # Lock the door and start listening
-            # Asynchronous programming prevents deadlocks
-            self.door_req_future = self.send_door_request(True)
-            self.init_waiting_state()
-            self.get_logger().info("Created a new subscription to {0}".format(self.qr_msg_subscription.topic_name))
-
-        elif new_state == State.DOOR_OPENED:
-            qr_msg = kwargs['qr_msg']
-            self.get_logger().info("Veryfing QR: {0}".format(qr_msg))
-            if self.verify_qr(qr_msg):
-                self.get_logger().info("QR code authorized.")
-                self.door_req_future = self.send_door_request(False)
-                self.init_open_state()
-                self.get_logger().info("Door opened for 5s")
-                time.sleep(5)
-                self.door_req_future = self.send_door_request(True)
-                self.set_state_(State.DOOR_CLOSED)
-            else:
-                self.get_logger().info("QR code not authorized.")
 
     def init_waiting_state(self):
         self.get_logger().info("Door locked.")
@@ -94,9 +72,6 @@ class StateMachine(Node):
             self.qr_msg_callback,
             1)
 
-    def init_open_state(self):
-        self.current_state_ = State.DOOR_OPENED
-
     def send_door_request(self, data):
         door_req = self.LOCK_SERVICE_TYPE.Request()
         door_req.data = data
@@ -106,6 +81,7 @@ class StateMachine(Node):
     
     def close_door_callback(self):
         self.send_door_request(True)
+        self.current_state_ = State.DOOR_CLOSED
         self.destroy_timer(self.close_door_timer_)
 
     def verify_qr_callback(self, msg):
@@ -115,7 +91,8 @@ class StateMachine(Node):
         if result:
             self.send_door_request(False)
             self.current_state_ = State.DOOR_OPENED
-            self.close_door_timer_ = self.create_timer(5, self.close_door_callback)
+            print("Opening the door for {0} seconds".format(self.door_open_time_))
+            self.close_door_timer_ = self.create_timer(self.door_open_time_, self.close_door_callback)
         else:
             self.current_state_ = State.DOOR_CLOSED
 
