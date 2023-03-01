@@ -15,8 +15,9 @@ from qr_verify.qr_verify import QRVerify
 
 class State(Enum):
     INIT = 0
-    WAITING_FOR_QR = 1
-    DOOR_OPENED = 2
+    DOOR_CLOSED = 1
+    VERIFYING_QR = 2
+    DOOR_OPENED = 3
 
 
 class StateMachine(Node):
@@ -47,7 +48,7 @@ class StateMachine(Node):
         self.get_logger().info("Door lock service server name: {0}; service type: {1}".format(
             self.door_lock_client_.srv_name,
             self.door_lock_client_.srv_type))
-        self.set_state_(State.WAITING_FOR_QR)
+        self.set_state_(State.DOOR_CLOSED)
 
 
     def init_params(self):
@@ -63,7 +64,7 @@ class StateMachine(Node):
         if self.CURRENT_STATE_ == new_state:
             return
 
-        if new_state == State.WAITING_FOR_QR:
+        if new_state == State.DOOR_CLOSED:
             # Lock the door and start listening
             # Asynchronous programming prevents deadlocks
             self.door_req_future = self.send_door_request(True)
@@ -80,13 +81,13 @@ class StateMachine(Node):
                 self.get_logger().info("Door opened for 5s")
                 time.sleep(5)
                 self.door_req_future = self.send_door_request(True)
-                self.set_state_(State.WAITING_FOR_QR)
+                self.set_state_(State.DOOR_CLOSED)
             else:
                 self.get_logger().info("QR code not authorized.")
 
     def init_waiting_state(self):
         self.get_logger().info("Door locked.")
-        self.CURRENT_STATE_ = State.WAITING_FOR_QR
+        self.CURRENT_STATE_ = State.DOOR_CLOSED
         # Start QR subscription
         self.qr_msg_subscription= self.create_subscription(
             self.QR_MSG_TYPE, 
@@ -109,7 +110,7 @@ class StateMachine(Node):
         return verifier.verify(msg)
     
     def qr_msg_callback(self, msg):
-        if self.CURRENT_STATE_ != State.WAITING_FOR_QR:
+        if self.CURRENT_STATE_ != State.DOOR_CLOSED:
             return
         msg_content = msg.data
         if msg_content in self.submitted_qrs_:
