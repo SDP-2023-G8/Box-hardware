@@ -1,2 +1,2 @@
-from playsound import playsound
-playsound('./sounds/door_open.wav')
+import os
+os.system('aplay ./sounds/door_open.wav')
