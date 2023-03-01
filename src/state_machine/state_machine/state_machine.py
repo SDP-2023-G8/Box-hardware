@@ -71,6 +71,13 @@ class StateMachine(Node):
             self.QR_TOPIC_NAME, 
             self.qr_msg_callback,
             1)
+        
+    def verify_qr(self, msg):
+        verifier = QRVerify()
+        try:
+            return verifier.verify(msg)
+        except ConnectionError as e:
+            return None
 
     def send_door_request(self, data):
         door_req = self.LOCK_SERVICE_TYPE.Request()
@@ -79,9 +86,12 @@ class StateMachine(Node):
         self.get_logger().info("Sending a request to the door lock service")
         return door_fut
     
+    # Locks the door and changes the state
     def close_door_callback(self):
         self.send_door_request(True)
         self.current_state_ = State.DOOR_CLOSED
+
+        # Execute only once
         self.destroy_timer(self.close_door_timer_)
 
     def verify_qr_callback(self, msg):
@@ -98,15 +108,8 @@ class StateMachine(Node):
 
         # Execute only once
         self.destroy_timer(self.verify_timer_)
-
-      
-    def verify_qr(self, msg):
-        verifier = QRVerify()
-        try:
-            return verifier.verify(msg)
-        except ConnectionError as e:
-            return None
     
+    # Listens for QR codes when in DOOR_CLOSED state
     def qr_msg_callback(self, msg):
         if self.current_state_ != State.DOOR_CLOSED:
             return
