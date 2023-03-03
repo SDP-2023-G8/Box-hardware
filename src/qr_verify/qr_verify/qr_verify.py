@@ -52,10 +52,8 @@ class QRVerify:
             requests.put(f"http://{self._hostname}:{self._port}/api/v1/deliveries/{deliveryId}")
 
             return jsonObject['result']
-        except KeyError:
-            raise LookupError(f"Could not find the delivery with id {deliveryId}")
         except Exception:
-            raise ConnectionError("Could not connect to the server!")
+            return False  # Not catching exceptions to not crash state machine
 
 def main():
     '''

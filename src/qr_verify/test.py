@@ -12,11 +12,11 @@ class TestQrVerify(unittest.TestCase):
 
     def test_verify_connection_err(self):
         verifier = QRVerify(hostname="fake", host_port=3000)
-        self.assertRaises(ConnectionError, verifier.verify, "imadethisup+fakehash")
+        self.assertFalse(verifier.verify("imadethisup+fakehash"))
 
     def test_verify_delivery_not_found(self):
         verifier = QRVerify(hostname="joflesan-ubuntu.local", host_port=5000)
-        self.assertRaises(LookupError, verifier.verify, "fakeithink+verysecureindeed")
+        self.assertFalse(verifier.verify("fakeithink+verysecureindeed"))
 
     def test_verify_hash_invalid(self):
         verifier = QRVerify(hostname="joflesan-ubuntu.local", host_port=5000)
