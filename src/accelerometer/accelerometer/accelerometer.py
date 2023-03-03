@@ -12,30 +12,34 @@ import busio
 import adafruit_lis3dh
 
 class Pub_accelerometer(Node):
+
+    ACC_PUB_TOPIC = '/accelerometer/acc'
+
     def __init__(self):
         super().__init__('accelerometer_publisher')
-        self.publisher_ = self.create_publisher(AccelStamped, '/accelerometer/acc', 10)
+        self.i2c = busio.I2C(board.SCL, board.SDA) 
+        self.int1 = digitalio.DigitalInOut(board.D24)
+        self.publisher_ = self.create_publisher(AccelStamped, self.ACC_PUB_TOPIC, 10)
         timer_period = 0.01  # in seconds, 10ms
         self.timer = self.create_timer(timer_period, self.timer_callback)
-        self.i = 0
+        self.get_logger().info(
+            "Accelererometer publisher topic: {0}. Publishing frequency: {1}Hz.".format(self.publisher_.topic_name, 1e9 / self.timer.timer_period_ns))
 
     def timer_callback(self):
+        if self.publisher_.get_subscription_count() == 0:
+            return
         msg = AccelStamped()
         msg.header.stamp = self.get_clock().now().to_msg()
 
-        # i2c = busio.I2C(board.SCL, board.SDA)                # Remove this line if using SPI
-        # int1 = digitalio.DigitalInOut(board.D24)             # Remove this line if using SPI
-        # lis3dh = adafruit_lis3dh.LIS3DH_I2C(i2c, int1=int1)
-        # x, y, z = lis3dh.acceleration
-        x, y, z = 1.0, 0.0, -1.0
+        lis3dh = adafruit_lis3dh.LIS3DH_I2C(self.i2c, int1=self.int1)
+        x, y, z = lis3dh.acceleration
 
         msg.accel.linear.x = x
         msg.accel.linear.y = y
         msg.accel.linear.z = z
 
         self.publisher_.publish(msg)
-        self.get_logger().info('Publishing: "%s"' % msg)
-        self.i += 1
+        self.get_logger().debug('Publishing: "%s"' % msg)
 
 
 def main():
