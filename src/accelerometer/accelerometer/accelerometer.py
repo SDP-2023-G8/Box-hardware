@@ -13,14 +13,14 @@ import adafruit_lis3dh
 
 class Pub_accelerometer(Node):
 
-    ACC_PUB_TOPIC = '/accelerometer/acc'
+    ACC_PUB_TOPIC = '~/acc'
 
     def __init__(self):
-        super().__init__('accelerometer_publisher')
+        super().__init__('accelerometer')
         self.i2c = busio.I2C(board.SCL, board.SDA) 
         self.int1 = digitalio.DigitalInOut(board.D24)
         self.publisher_ = self.create_publisher(AccelStamped, self.ACC_PUB_TOPIC, 10)
-        timer_period = 0.01  # in seconds, 10ms
+        timer_period = 0.05     # 20Hz
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.get_logger().info(
             "Accelererometer publisher topic: {0}. Publishing frequency: {1}Hz.".format(self.publisher_.topic_name, 1e9 / self.timer.timer_period_ns))
