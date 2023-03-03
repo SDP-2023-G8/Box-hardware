@@ -27,8 +27,16 @@ def generate_launch_description():
         )]),
     )
 
+    accelerometer_node = Node(
+        name='accelerometer',
+        package='accelerometer',
+        executable='accelerometer',
+        output='both'
+    )
+
     return LaunchDescription([
         qr_pipeline, 
         door_lock_node, 
-        state_machine
+        state_machine,
+        accelerometer_node
     ])
