@@ -8,7 +8,7 @@ class SpeakerService(Node):
 
     def __init__(self):
         super().__init__('speaker')
-        self.srv = self.create_service(SetBool, 'speaker', self.callback)
+        self.srv = self.create_service(SetBool, '~/speaker', self.callback)
 
     def callback(self, request, response):
         if (request.data == True):
