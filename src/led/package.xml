@@ -4,7 +4,7 @@
   <name>led</name>
   <version>0.0.0</version>
   <description>led</description>
-  <maintainer email="andy.xiongcong@gmail.com">cong</maintainer>
+  <maintainer email="w.boncela@gmail.com">cong</maintainer>
   <license>MIT</license>
 
   <depend>rclpy</depend>
