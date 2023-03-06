@@ -1,12 +1,9 @@
 # Python Package that verifies a QR code's authenticity by
-# querying a Firebase Realtime Database instance
+# querying our local REST API service 
 # @author Josflesan
 
 import requests
 import json
-from dotenv import dotenv_values
-
-config = dotenv_values("firebase-settings.env")
 
 class QRVerify:
     '''
@@ -15,14 +12,11 @@ class QRVerify:
     Attributes
     ----------
     kwargs['hostname'] : str
-        the name of the host where the Realtime Database instance lives.
-        This will be 'localhost' or the IP of the machine in the LAN hosting the database
-        if it is being locally emulated. If not passed, the environment variable for the 
-        production hostname will be used.
+        the name of the host where the REST API instance lives.
+        This will be 'localhost' or the IP of the machine in the LAN hosting the API.
 
     kwargs['host_port'] : int
-        the port in which the Realtime Database instance is being served if using
-        local emulator.
+        the port in which the REST API instance is being served.
 
     Methods
     -------
@@ -50,37 +44,16 @@ class QRVerify:
 
         deliveryId, hashCode = qrString.split('+')
 
-        if self._emulated:
-            resp = requests.get(f"http://{self._hostname}:{self._port}/deliveries/{deliveryId}.json/?ns=inbox-sdp")
-        else:
-            resp = requests.get(f"https://inbox-sdp-default-rtdb.europe-west1.firebasedatabase.app/deliveries/{deliveryId}.json")
+        try:
+            resp = requests.get(f"http://{self._hostname}:{self._port}/api/v1/deliveries/{deliveryId}/{hashCode}")
+            jsonObject = resp.json()
+            
+            # Toggle the scanned flag
+            requests.put(f"http://{self._hostname}:{self._port}/api/v1/deliveries/{deliveryId}")
 
-        jsonObject = resp.json()
-
-        if jsonObject is None:
-            raise ConnectionError("Delivery does not exist")
-        elif jsonObject['hash'] != hashCode:
-            return False  # The hash code is not valid
-        else:
-            self.__updateScanned(deliveryId)  # Set scanned flag
-
-        return True
-
-
-    def __updateScanned(self, deliveryId: str):
-        '''
-        Method that updates the scanned field inside the relevant delivery record.
-        This is used by the Online Courier Service to navigate between screens.
-
-        @param deliveryId : the unique id string identifying the delivery
-        '''
-
-        payload = {'scanned': True}
-
-        if self._emulated:
-            requests.patch(f"http://{self._hostname}:{self._port}/deliveries/{deliveryId}.json/?ns=inbox-sdp", data=json.dumps(payload))
-        else:
-            requests.patch(f"https://inbox-sdp-default-rtdb.europe-west1.firebasedatabase.app/deliveries/{deliveryId}.json", data=json.dumps(payload))            
+            return jsonObject['result']
+        except Exception:
+            return False  # Not catching exceptions to not crash state machine
 
 def main():
     '''

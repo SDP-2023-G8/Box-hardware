@@ -73,7 +73,7 @@ class StateMachine(Node):
             1)
         
     def verify_qr(self, msg):
-        verifier = QRVerify()
+        verifier = QRVerify(hostname="joflesan-ubuntu.local", host_port=5000)
         try:
             return verifier.verify(msg)
         except ConnectionError as e:
