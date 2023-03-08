@@ -16,6 +16,7 @@ class led(Node):
         GPIO.setwarnings(False)
         GPIO.setup(self.PIN,GPIO.OUT)
         self.srv = self.create_service(SetBool, '~/led', self.callback)
+        self.get_logger().info('[Node] Led Running')
 
     def callback(self, request, response):
         if (request.data == True):
