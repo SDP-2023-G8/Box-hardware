@@ -15,7 +15,7 @@ class led(Node):
         GPIO.setmode(GPIO.BCM)
         GPIO.setwarnings(False)
         GPIO.setup(self.PIN,GPIO.OUT)
-        self.srv = self.create_service(SetBool, 'led', self.callback)
+        self.srv = self.create_service(SetBool, '~/led', self.callback)
 
     def callback(self, request, response):
         if (request.data == True):
