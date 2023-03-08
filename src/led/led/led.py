@@ -14,21 +14,19 @@ class led(Node):
         self.PIN = self.declare_parameter("PIN",14)
         GPIO.setmode(GPIO.BCM)
         GPIO.setwarnings(False)
-        GPIO.setup(self.PIN,GPIO.OUT)
+        GPIO.setup(self.PIN.value,GPIO.OUT)
         self.srv = self.create_service(SetBool, '~/led', self.callback)
         self.get_logger().info('[Node] Led Running')
 
     def callback(self, request, response):
         if (request.data == True):
             self.get_logger().info('led on')
-            print(self.PIN)
-            GPIO.output(self.PIN,GPIO.HIGH)
+            GPIO.output(self.PIN.value,GPIO.HIGH)
 
         else:
             self.get_logger().info('led off')
-            print(self.PIN)
 
-            GPIO.output(self.PIN,GPIO.LOW)
+            GPIO.output(self.PIN.value,GPIO.LOW)
         response.success = True 
         return response
 
