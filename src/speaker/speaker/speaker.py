@@ -13,10 +13,10 @@ class SpeakerService(Node):
     def callback(self, request, response):
         if (request.data == True):
             self.get_logger().info('[ Sound ] door open')
-            os.system('aplay ./examples/speaker/sounds/door_open.wav')
+            os.system('aplay ./examples/speaker/sounds/door_open.wav -D default:CARD=UACDemoV10')
         else:
             self.get_logger().info('[ Sound ] alarm')
-            os.system('aplay ./examples/speaker/sounds/alarm.wav')
+            os.system('aplay ./examples/speaker/sounds/alarm.wav -D default:CARD=UACDemoV10')
         response.success = True 
         return response
 
