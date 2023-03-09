@@ -34,10 +34,16 @@ def generate_launch_description():
         output='both'
     )
 
-    led_node = Node(
-        name='led',
-        package='led',
-        executable='led',
+    led = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([os.path.join(
+            get_package_share_directory('led'), 'led.launch.py'
+        )]),
+    )
+
+    speaker_node = Node(
+        name='speaker',
+        package='speaker',
+        executable='speaker',
         output='both'
     )
 
@@ -46,5 +52,6 @@ def generate_launch_description():
         door_lock_node, 
         state_machine,
         accelerometer_node,
-        led_node
+        led,
+        speaker_node
     ])
