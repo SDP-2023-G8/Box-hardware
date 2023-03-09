@@ -99,7 +99,7 @@ class StateMachine(Node):
         led_req = self.LED_SERVICE_TYPE.Request()
         led_req.data = data
         led_fut = self.led_client_.call_async(led_req)
-        self.get_logger().info("Sending a request to the led service")'
+        self.get_logger().info("Sending a request to the led service")
         return led_fut
     
     # Locks the door and changes the state
