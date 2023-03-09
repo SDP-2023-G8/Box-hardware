@@ -33,6 +33,9 @@ class StateMachine(Node):
     LED_SERVICE_NAME = "/led_srv"
     LED_SERVICE_TYPE = SetBool
 
+    SPEAKER_SERVICE_NAME = "/speaker_srv"
+    SPEAKER_SERVICE_TYPE = SetBool
+
     current_state_ = State.INIT
     door_open_time_ = 5
  
@@ -59,6 +62,10 @@ class StateMachine(Node):
         self.led_client_ = self.create_client(self.LED_SERVICE_TYPE, self.LED_SERVICE_NAME)
         self.door_lock_client_.wait_for_service(30)
         self.send_led_request(False)
+
+        # Speaker
+        self.speaker_client_ = self.create_client(self.SPEAKER_SERVICE_TYPE, self.SPEAKER_SERVICE_NAME)
+        self.speaker_client_.wait_for_service(30)
 
         self.init_waiting_state()
 
@@ -104,6 +111,13 @@ class StateMachine(Node):
         self.get_logger().info("Sending a request to the led service")
         return led_fut
     
+    def send_speaker_request(self, data):
+        speaker_req = self.SPEAKER_SERVICE_TYPE.Request()
+        speaker_req.data = data
+        speaker_fut = self.speaker_client_.call_async(speaker_req)
+        self.get_logger().info("Sending a request to the speaker service")
+        return speaker_fut
+    
     # Locks the door and changes the state
     def close_door_callback(self):
         self.send_door_request(True)
@@ -120,6 +134,7 @@ class StateMachine(Node):
         if result:
             self.send_door_request(False)
             self.send_led_request(True)
+            self.send_speaker_request(True)
             self.current_state_ = State.DOOR_OPENED
             print("Opening the door for {0} seconds".format(self.door_open_time_))
             self.close_door_timer_ = self.create_timer(self.door_open_time_, self.close_door_callback)
