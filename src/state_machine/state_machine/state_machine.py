@@ -55,7 +55,13 @@ class StateMachine(Node):
         # Lock the door
         self.send_door_request(True)
         self.init_waiting_state()
+
+        # LED 
+        self.led_client_ = self.create_client(self.LED_SERVICE_TYPE, self.LED_SERVICE_NAME)
+        self.door_lock_client_.wait_for_service(30)
+
         self.get_logger().info("Created a new subscription to {0}".format(self.qr_msg_subscription.topic_name))
+        self.get_logger().info("State machine initialized correctly")
 
     def init_params(self):
         self.get_logger().info("*** Initializing params ***")
@@ -89,9 +95,17 @@ class StateMachine(Node):
         self.get_logger().info("Sending a request to the door lock service")
         return door_fut
     
+    def send_led_request(self, data):
+        led_req = self.LED_SERVICE_TYPE.Request()
+        led_req.data = data
+        led_fut = self.led_client_.call_async(led_req)
+        self.get_logger().info("Sending a request to the led service")'
+        return led_fut
+    
     # Locks the door and changes the state
     def close_door_callback(self):
         self.send_door_request(True)
+        self.send_led_request(False)
         self.current_state_ = State.DOOR_CLOSED
 
         # Execute only once
@@ -103,6 +117,7 @@ class StateMachine(Node):
         self.get_logger().info("Verification result: {0}".format(result))
         if result:
             self.send_door_request(False)
+            self.send_led_request(True)
             self.current_state_ = State.DOOR_OPENED
             print("Opening the door for {0} seconds".format(self.door_open_time_))
             self.close_door_timer_ = self.create_timer(self.door_open_time_, self.close_door_callback)
