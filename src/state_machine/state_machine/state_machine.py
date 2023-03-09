@@ -61,7 +61,7 @@ class StateMachine(Node):
         self.door_lock_client_.wait_for_service(30)
 
         self.get_logger().info("Created a new subscription to {0}".format(self.qr_msg_subscription.topic_name))
-        self.get_logger().info("State machine initialized correctly")
+        self.get_logger().info("State machine initialized")
 
     def init_params(self):
         self.get_logger().info("*** Initializing params ***")
@@ -99,7 +99,7 @@ class StateMachine(Node):
         led_req = self.LED_SERVICE_TYPE.Request()
         led_req.data = data
         led_fut = self.led_client_.call_async(led_req)
-        self.get_logger().info("Sending a request to the led service")'
+        self.get_logger().info("Sending a request to the led service")
         return led_fut
     
     # Locks the door and changes the state
