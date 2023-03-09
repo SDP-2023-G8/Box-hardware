@@ -54,6 +54,7 @@ class StateMachine(Node):
         
         # Lock the door
         self.send_door_request(True)
+        self.send_led_request(False)
         self.init_waiting_state()
 
         # LED 
