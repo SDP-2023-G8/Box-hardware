@@ -61,7 +61,7 @@ class StateMachine(Node):
         self.door_lock_client_.wait_for_service(30)
 
         self.get_logger().info("Created a new subscription to {0}".format(self.qr_msg_subscription.topic_name))
-        self.get_logger().info("State machine initialized correctly")
+        self.get_logger().info("State machine initialized")
 
     def init_params(self):
         self.get_logger().info("*** Initializing params ***")
