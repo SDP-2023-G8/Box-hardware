@@ -34,9 +34,17 @@ def generate_launch_description():
         output='both'
     )
 
+    led_node = Node(
+        name='led',
+        package='led',
+        executable='led',
+        output='both'
+    )
+
     return LaunchDescription([
         qr_pipeline, 
         door_lock_node, 
         state_machine,
-        accelerometer_node
+        accelerometer_node,
+        led_node
     ])

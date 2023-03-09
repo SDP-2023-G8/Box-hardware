@@ -30,6 +30,9 @@ class StateMachine(Node):
     LOCK_SERVICE_NAME = "/lock_srv"
     LOCK_SERVICE_TYPE = SetBool
 
+    LED_SERVICE_NAME = "/led_srv"
+    LED_SERVICE_TYPE = SetBool
+
     current_state_ = State.INIT
     door_open_time_ = 5
  
@@ -44,7 +47,7 @@ class StateMachine(Node):
 
         # Locking / unlocking the door
         self.door_lock_client_ = self.create_client(self.LOCK_SERVICE_TYPE, self.LOCK_SERVICE_NAME)
-        self.door_lock_client_.wait_for_service(3600)
+        self.door_lock_client_.wait_for_service(30)
         self.get_logger().info("Door lock service server name: {0}; service type: {1}".format(
             self.door_lock_client_.srv_name,
             self.door_lock_client_.srv_type))
