@@ -54,12 +54,13 @@ class StateMachine(Node):
         
         # Lock the door
         self.send_door_request(True)
-        self.send_led_request(False)
-        self.init_waiting_state()
 
         # LED 
         self.led_client_ = self.create_client(self.LED_SERVICE_TYPE, self.LED_SERVICE_NAME)
         self.door_lock_client_.wait_for_service(30)
+        self.send_led_request(False)
+
+        self.init_waiting_state()
 
         self.get_logger().info("Created a new subscription to {0}".format(self.qr_msg_subscription.topic_name))
         self.get_logger().info("State machine initialized")
