@@ -11,7 +11,9 @@ def generate_launch_description():
             emulate_tty=True,
             remappings=[
                 ('/qr_msg', '/qr_code_node/qr_decoded'),
-                ('/lock_srv', '/lock_service/lock')
+                ('/lock_srv', '/lock_service/lock'),
+                ('/led_srv', '/led/led'),
+                ('/speaker_srv', '/speaker/speaker')
             ],
             arguments=[
                 '--ros-args', '--log-level', 'info'

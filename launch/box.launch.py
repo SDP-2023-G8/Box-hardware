@@ -34,9 +34,24 @@ def generate_launch_description():
         output='both'
     )
 
+    led = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([os.path.join(
+            get_package_share_directory('led'), 'led.launch.py'
+        )]),
+    )
+
+    speaker_node = Node(
+        name='speaker',
+        package='speaker',
+        executable='speaker',
+        output='both'
+    )
+
     return LaunchDescription([
         qr_pipeline, 
         door_lock_node, 
         state_machine,
-        accelerometer_node
+        accelerometer_node,
+        led,
+        speaker_node
     ])

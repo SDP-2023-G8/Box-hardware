@@ -30,6 +30,12 @@ class StateMachine(Node):
     LOCK_SERVICE_NAME = "/lock_srv"
     LOCK_SERVICE_TYPE = SetBool
 
+    LED_SERVICE_NAME = "/led_srv"
+    LED_SERVICE_TYPE = SetBool
+
+    SPEAKER_SERVICE_NAME = "/speaker_srv"
+    SPEAKER_SERVICE_TYPE = SetBool
+
     current_state_ = State.INIT
     door_open_time_ = 5
  
@@ -44,15 +50,27 @@ class StateMachine(Node):
 
         # Locking / unlocking the door
         self.door_lock_client_ = self.create_client(self.LOCK_SERVICE_TYPE, self.LOCK_SERVICE_NAME)
-        self.door_lock_client_.wait_for_service(3600)
+        self.door_lock_client_.wait_for_service(30)
         self.get_logger().info("Door lock service server name: {0}; service type: {1}".format(
             self.door_lock_client_.srv_name,
             self.door_lock_client_.srv_type))
         
         # Lock the door
         self.send_door_request(True)
+
+        # LED 
+        self.led_client_ = self.create_client(self.LED_SERVICE_TYPE, self.LED_SERVICE_NAME)
+        self.door_lock_client_.wait_for_service(30)
+        self.send_led_request(False)
+
+        # Speaker
+        self.speaker_client_ = self.create_client(self.SPEAKER_SERVICE_TYPE, self.SPEAKER_SERVICE_NAME)
+        self.speaker_client_.wait_for_service(30)
+
         self.init_waiting_state()
+
         self.get_logger().info("Created a new subscription to {0}".format(self.qr_msg_subscription.topic_name))
+        self.get_logger().info("State machine initialized")
 
     def init_params(self):
         self.get_logger().info("*** Initializing params ***")
@@ -86,9 +104,24 @@ class StateMachine(Node):
         self.get_logger().info("Sending a request to the door lock service")
         return door_fut
     
+    def send_led_request(self, data):
+        led_req = self.LED_SERVICE_TYPE.Request()
+        led_req.data = data
+        led_fut = self.led_client_.call_async(led_req)
+        self.get_logger().info("Sending a request to the led service")
+        return led_fut
+    
+    def send_speaker_request(self, data):
+        speaker_req = self.SPEAKER_SERVICE_TYPE.Request()
+        speaker_req.data = data
+        speaker_fut = self.speaker_client_.call_async(speaker_req)
+        self.get_logger().info("Sending a request to the speaker service")
+        return speaker_fut
+    
     # Locks the door and changes the state
     def close_door_callback(self):
         self.send_door_request(True)
+        self.send_led_request(False)
         self.current_state_ = State.DOOR_CLOSED
 
         # Execute only once
@@ -100,6 +133,8 @@ class StateMachine(Node):
         self.get_logger().info("Verification result: {0}".format(result))
         if result:
             self.send_door_request(False)
+            self.send_led_request(True)
+            self.send_speaker_request(True)
             self.current_state_ = State.DOOR_OPENED
             print("Opening the door for {0} seconds".format(self.door_open_time_))
             self.close_door_timer_ = self.create_timer(self.door_open_time_, self.close_door_callback)
