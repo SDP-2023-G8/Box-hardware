@@ -2,7 +2,7 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
-from std_srvs.srv  import SetBool
+from box_interfaces.srv import DoorLock
 # import smbus
 import os
 import time
@@ -95,7 +95,7 @@ class LockService(Node):
 
     def __init__(self):
         super().__init__('lock_service')
-        self.srv = self.create_service(SetBool, '~/lock', self.callback)
+        self.srv = self.create_service(DoorLock, '~/lock', self.callback)
 
     def callback(self, request, response):
         box_id = request.box_idx
