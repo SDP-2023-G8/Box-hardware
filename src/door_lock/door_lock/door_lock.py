@@ -83,11 +83,11 @@ magnet = Motors()
 speed = 255         
 
  
-def lock(port):
+def unlock(port):
 	magnet.move_motor(port,speed)      
 
 
-def unlock(port):
+def lock(port):
 	magnet.stop_motors(port) 
         
 
@@ -99,7 +99,7 @@ class LockService(Node):
 
     def callback(self, request, response):
         box_id = request.box_idx
-        if not request.lock_state:
+        if request.lock_state:
             lock(box_id)
             self.get_logger().info('door lock {0}'.format(box_id))
         else:
