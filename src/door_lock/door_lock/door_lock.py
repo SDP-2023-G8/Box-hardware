@@ -88,7 +88,7 @@ def unlock(port):
 
 
 def lock(port):
-	magnet.stop_motors(port) 
+	magnet.stop_motor(port) 
         
 
 class LockService(Node):
