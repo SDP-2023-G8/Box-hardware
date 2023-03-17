@@ -79,17 +79,16 @@ class Motors(object):
 							self.encoder_register, 	\
 							self.num_encoder_ports)
 
-magnet = Motors() 
-port = 3         
+magnet = Motors()       
 speed = 255         
 
  
-def lock():
+def lock(port):
 	magnet.move_motor(port,speed)      
 
 
-def unlock():
-	magnet.stop_motors() 
+def unlock(port):
+	magnet.stop_motors(port) 
         
 
 class LockService(Node):
@@ -99,12 +98,13 @@ class LockService(Node):
         self.srv = self.create_service(SetBool, '~/lock', self.callback)
 
     def callback(self, request, response):
-        if (request.data == False):
-            lock()
-            self.get_logger().info('door lock')
+        box_id = request.box_idx
+        if not request.lock_state:
+            lock(box_id)
+            self.get_logger().info('door lock {0}'.format(box_id))
         else:
-            unlock()
-            self.get_logger().info('door unlock')
+            unlock(box_id)
+            self.get_logger().info('door unlock {0}'.format(box_id))
         response.success = True
         return response
 
