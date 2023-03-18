@@ -1,6 +1,7 @@
 from std_srvs.srv  import SetBool
 import os
 import rclpy
+import sounddevice as sd
 from rclpy.node import Node
 
 
@@ -11,7 +12,10 @@ class SpeakerService(Node):
         self.srv = self.create_service(SetBool, '~/speaker', self.callback)
 
     def callback(self, request, response):
-        if (request.data == True):
+        if ('buffer' in request):
+            # Play buffer
+            sd.play(request.buffer, 44000)
+        elif (request.data == True):
             self.get_logger().info('[ Sound ] door open')
             os.system('aplay ./examples/speaker/sounds/door_open.wav -D default:CARD=UACDemoV10')
         else:

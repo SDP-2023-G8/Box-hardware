@@ -1,6 +1,8 @@
 # Python
 from enum import Enum
 import time
+import socketio
+import cv2, base64
 
 # ROS
 import rclpy
@@ -12,6 +14,8 @@ from std_msgs.msg import String
 
 from qr_verify.qr_verify import QRVerify
 
+sio = socketio.Client()
+cap = cv2.VideoCapture(0)
 
 class State(Enum):
     INIT = 0
@@ -143,7 +147,29 @@ class StateMachine(Node):
 
         # Execute only once
         self.destroy_timer(self.verify_timer_)
+
+    # Socket method that allows app user to unlock door
+    @sio.on("unlock")
+    def unlock_door(self):
+        self.get_logger().info("unlock socket method called")
+        self.send_door_request(False)
+        self.current_state_ = State.DOOR_OPENED
+        self.get_logger().info("Door has been unlocked by the user")
+        self.close_door_timer_ = self.create_timer(self.door_open_time_, self.close_door_callback)
+        self.destroy_timer(self.verify_timer_)
+        return True
     
+    # Socket method that allows app user to send audio data
+    @sio.on("audioBuffer")
+    def send_audio(self, buffer):
+        self.get_logger().info("audioBuffer socket method called")
+        speaker_req = self.SPEAKER_SERVICE_TYPE.Request()
+        speaker_req.data = False
+        speaker_req.buffer = buffer  # Send buffer to play
+        self.speaker_client_.call_async(speaker_req)
+        self.get_logger().info("Sending a request to the speaker service")
+        return True
+
     # Listens for QR codes when in DOOR_CLOSED state
     def qr_msg_callback(self, msg):
         if self.current_state_ != State.DOOR_CLOSED:
@@ -160,9 +186,35 @@ class StateMachine(Node):
             msg.data = str(self.current_state_)
             self.state_pub_.publish(msg)
 
+@sio.on("startVideo")
+def start_video():
+    try:
+
+        while cap.isOpened():
+            _, frame = cap.read()
+
+            encoded = cv2.imencode('.jpg', frame)[1]
+
+            data = str(base64.b64encode(encoded))
+            data = data[2:len(data)-1]
+
+            sio.emit("videoFrame", data)
+
+        cap.release()
+    
+    except Exception as err:
+        print(f"Something went wrong: {err}")
+
+@sio.on("stopVideo")
+def stop_video():
+    cap = cv2.VideoCapture(0)
+    cap.release()
 
 def main(args=None):
     rclpy.init(args=args)
+
+    # Set up socket (using static IP)
+    sio.connect('http://192.168.43.181:5000')
 
     node = StateMachine()
 
