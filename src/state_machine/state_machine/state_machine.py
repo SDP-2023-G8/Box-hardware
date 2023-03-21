@@ -172,6 +172,7 @@ class StateMachine(Node):
 
 @sio.on("startVideo")
 def start_video():
+    global node, sio
     try:
         node.get_logger().info("Started Video Feed")
         while cap.isOpened():
@@ -191,6 +192,7 @@ def start_video():
 
 @sio.on("stopVideo")
 def stop_video():
+    global node
     node.get_logger().info("Stopped Video Feed")
     cap.release()
 
@@ -207,11 +209,13 @@ def stop_video():
 
 @sio.on("audioBuffer")
 def send_audio(buffer):
+    global stream
     buffer_bytes = base64.b64decode(buffer)
     stream.write(buffer_bytes)
 
 @sio.on("stopAudio")
 def stop_audio():
+    global stream
     print("Stopping audio stream")
     stream.stop_stream()
     stream.close()
@@ -219,6 +223,7 @@ def stop_audio():
 # Socket method that allows app user to unlock door
 @sio.on("unlock")
 def unlock_door():
+    global node
     node.get_logger().info("unlock socket method called")
     node.send_door_request(False)
     node.current_state_ = State.DOOR_OPENED
@@ -228,6 +233,7 @@ def unlock_door():
     return "Unlocked"
 
 def main(args=None):
+    global sio, node, audio, stream
     rclpy.init(args=args)
 
     # Set up socket (using static IP)
