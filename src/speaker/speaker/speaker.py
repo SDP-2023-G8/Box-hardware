@@ -1,7 +1,6 @@
 from std_srvs.srv  import SetBool
 import os
 import rclpy
-import sounddevice as sd
 from rclpy.node import Node
 
 
