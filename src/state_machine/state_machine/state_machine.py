@@ -2,6 +2,7 @@
 from enum import Enum
 import time
 import socketio
+import pyaudio
 import cv2, base64
 
 # ROS
@@ -16,6 +17,11 @@ from qr_verify.qr_verify import QRVerify
 
 sio = socketio.Client()
 cap = cv2.VideoCapture(0)
+node = None  # ROS Node variable
+audio = None  # PyAudio instance variable
+stream = None  # PyAudio stream variable
+
+CHUNK = 3584
 
 class State(Enum):
     INIT = 0
@@ -148,28 +154,6 @@ class StateMachine(Node):
         # Execute only once
         self.destroy_timer(self.verify_timer_)
 
-    # Socket method that allows app user to unlock door
-    @sio.on("unlock")
-    def unlock_door(self):
-        self.get_logger().info("unlock socket method called")
-        self.send_door_request(False)
-        self.current_state_ = State.DOOR_OPENED
-        self.get_logger().info("Door has been unlocked by the user")
-        self.close_door_timer_ = self.create_timer(self.door_open_time_, self.close_door_callback)
-        self.destroy_timer(self.verify_timer_)
-        return True
-    
-    # Socket method that allows app user to send audio data
-    @sio.on("audioBuffer")
-    def send_audio(self, buffer):
-        self.get_logger().info("audioBuffer socket method called")
-        speaker_req = self.SPEAKER_SERVICE_TYPE.Request()
-        speaker_req.data = False
-        speaker_req.buffer = buffer  # Send buffer to play
-        self.speaker_client_.call_async(speaker_req)
-        self.get_logger().info("Sending a request to the speaker service")
-        return True
-
     # Listens for QR codes when in DOOR_CLOSED state
     def qr_msg_callback(self, msg):
         if self.current_state_ != State.DOOR_CLOSED:
@@ -189,7 +173,7 @@ class StateMachine(Node):
 @sio.on("startVideo")
 def start_video():
     try:
-
+        node.get_logger().info("Started Video Feed")
         while cap.isOpened():
             _, frame = cap.read()
 
@@ -207,8 +191,41 @@ def start_video():
 
 @sio.on("stopVideo")
 def stop_video():
-    cap = cv2.VideoCapture(0)
+    node.get_logger().info("Stopped Video Feed")
     cap.release()
+
+# Socket method that allows app user to send audio data
+# @sio.on("audioBuffer")
+# def send_audio(buffer):
+#     node.get_logger().info("audioBuffer socket method called")
+#     speaker_req = node.SPEAKER_SERVICE_TYPE.Request()
+#     speaker_req.data = False
+#     speaker_req.buffer = buffer  # Send buffer to play
+#     node.speaker_client_.call_async(speaker_req)
+#     node.get_logger().info("Sending a request to the speaker service")
+#     return "Audio Sent"
+
+@sio.on("audioBuffer")
+def send_audio(buffer):
+    buffer_bytes = base64.b64decode(buffer)
+    stream.write(buffer_bytes)
+
+@sio.on("stopAudio")
+def stop_audio():
+    print("Stopping audio stream")
+    stream.stop_stream()
+    stream.close()
+
+# Socket method that allows app user to unlock door
+@sio.on("unlock")
+def unlock_door():
+    node.get_logger().info("unlock socket method called")
+    node.send_door_request(False)
+    node.current_state_ = State.DOOR_OPENED
+    node.get_logger().info("Door has been unlocked by the user")
+    node.close_door_timer_ = node.create_timer(node.door_open_time_, node.close_door_callback)
+    node.destroy_timer(node.verify_timer_)
+    return "Unlocked"
 
 def main(args=None):
     rclpy.init(args=args)
@@ -217,6 +234,14 @@ def main(args=None):
     sio.connect('http://192.168.43.181:5000')
 
     node = StateMachine()
+
+    global audio, stream
+    audio = pyaudio.PyAudio()
+    stream = audio.open(format=pyaudio.paIn16,
+                        channels=1,
+                        rate=44100,
+                        output=True,
+                        frames_per_buffer=CHUNK)
 
     rclpy.spin(node)
 
