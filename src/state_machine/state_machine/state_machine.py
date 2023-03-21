@@ -237,7 +237,7 @@ def main(args=None):
 
     global audio, stream
     audio = pyaudio.PyAudio()
-    stream = audio.open(format=pyaudio.paIn16,
+    stream = audio.open(format=pyaudio.paInt16,
                         channels=1,
                         rate=44100,
                         output=True,
