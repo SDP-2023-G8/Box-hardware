@@ -36,7 +36,7 @@ class QRCodeNode(Node):
         self.display_ = self.declare_parameter("display", False)
         self.get_logger().info("display: {0}".format(self.display_.value))
 
-        self.cam_fps_ = self.declare_parameter("cam_fps", 15)
+        self.cam_fps_ = self.declare_parameter("cam_fps", 25)
         self.get_logger().info("cam_fps: {0}".format(self.cam_fps_.value))
 
         self.get_logger().info("*** Parameters initialized sucessfully ***")
@@ -76,20 +76,17 @@ def start_video():
     frame_rate = 25
     prev = 0
     try:
+        qr_node.cap_.set(cv2.CAP_PROP_BUFFERSIZE, 3)  # Change buffer size
         qr_node.get_logger().info("Started Video Feed")
         while qr_node.cap_.isOpened():
-            time_elapsed = time.time() - prev
-            if time_elapsed > 1./frame_rate:
-                prev = time.time()
+            _, frame = qr_node.cap_.read()
 
-                _, frame = qr_node.cap_.read()
+            encoded = cv2.imencode('.jpg', frame)[1]
 
-                encoded = cv2.imencode('.jpg', frame)[1]
+            data = str(base64.b64encode(encoded))
+            data = data[2:len(data)-1]
 
-                data = str(base64.b64encode(encoded))
-                data = data[2:len(data)-1]
-
-                sio.emit("videoFrame", data)
+            sio.emit("videoFrame", data)
 
         qr_node.cap_.release()
     
