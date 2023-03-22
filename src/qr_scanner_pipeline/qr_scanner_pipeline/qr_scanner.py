@@ -73,8 +73,6 @@ class QRCodeNode(Node):
 @sio.on("startVideo")
 def start_video():
     global qr_node, sio
-    frame_rate = 25
-    prev = 0
     try:
         qr_node.cap_.set(cv2.CAP_PROP_BUFFERSIZE, 3)  # Change buffer size
         qr_node.get_logger().info("Started Video Feed")

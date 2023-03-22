@@ -15,10 +15,10 @@ from std_msgs.msg import String
 
 from qr_verify.qr_verify import QRVerify
 
-sio = socketio.Client()
-node = None  # ROS Node variable
-audio = None  # PyAudio instance variable
-stream = None  # PyAudio stream variable
+# sio = socketio.Client()
+# node = None  # ROS Node variable
+# audio = None  # PyAudio instance variable
+# stream = None  # PyAudio stream variable
 
 CHUNK = 3584
 
@@ -180,46 +180,46 @@ class StateMachine(Node):
 #     node.get_logger().info("Sending a request to the speaker service")
 #     return "Audio Sent"
 
-@sio.on("audioBuffer")
-def send_audio(buffer):
-    global stream
-    buffer_bytes = base64.b64decode(buffer)
-    stream.write(buffer_bytes)
+# @sio.on("audioBuffer")
+# def send_audio(buffer):
+#     global stream
+#     buffer_bytes = base64.b64decode(buffer)
+#     stream.write(buffer_bytes)
 
-@sio.on("stopAudio")
-def stop_audio():
-    global stream
-    print("Stopping audio stream")
-    stream.stop_stream()
-    stream.close()
+# @sio.on("stopAudio")
+# def stop_audio():
+#     global stream
+#     print("Stopping audio stream")
+#     stream.stop_stream()
+#     stream.close()
 
 # Socket method that allows app user to unlock door
-@sio.on("unlock")
-def unlock_door():
-    global node
-    node.get_logger().info("unlock socket method called")
-    node.send_door_request(False)
-    node.current_state_ = State.DOOR_OPENED
-    node.get_logger().info("Door has been unlocked by the user")
-    node.close_door_timer_ = node.create_timer(node.door_open_time_, node.close_door_callback)
-    node.destroy_timer(node.close_door_timer_)
-    return "Unlocked"
+# @sio.on("unlock")
+# def unlock_door():
+#     global node
+#     node.get_logger().info("unlock socket method called")
+#     node.send_door_request(False)
+#     node.current_state_ = State.DOOR_OPENED
+#     node.get_logger().info("Door has been unlocked by the user")
+#     node.close_door_timer_ = node.create_timer(node.door_open_time_, node.close_door_callback)
+#     node.destroy_timer(node.close_door_timer_)
+#     return "Unlocked"
 
 def main(args=None):
-    global sio, node, audio, stream
+    # global sio, node, audio, stream
     rclpy.init(args=args)
 
     node = StateMachine()
 
-    # Set up socket (using static IP)
-    sio.connect('http://192.168.43.181:5000')
+    # # Set up socket (using static IP)
+    # sio.connect('http://192.168.43.181:5000')
 
-    audio = pyaudio.PyAudio()
-    stream = audio.open(format=pyaudio.paInt16,
-                        channels=1,
-                        rate=44100,
-                        output=True,
-                        frames_per_buffer=CHUNK)
+    # audio = pyaudio.PyAudio()
+    # stream = audio.open(format=pyaudio.paInt16,
+    #                     channels=1,
+    #                     rate=44100,
+    #                     output=True,
+    #                     frames_per_buffer=CHUNK)
 
     rclpy.spin(node)
 
