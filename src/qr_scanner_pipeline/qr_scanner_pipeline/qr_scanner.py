@@ -73,7 +73,7 @@ class QRCodeNode(Node):
 def start_video():
     global qr_node, sio
     try:
-        node.get_logger().info("Started Video Feed")
+        qr_node.get_logger().info("Started Video Feed")
         while qr_node.cap_.isOpened():
             _, frame = qr_node.cap_.read()
 
@@ -91,8 +91,8 @@ def start_video():
 
 @sio.on("stopVideo")
 def stop_video():
-    global node
-    node.get_logger().info("Stopped Video Feed")
+    global qr_node
+    # qr_node.get_logger().info("Stopped Video Feed")
     qr_node.cap_.release()
 
 def main(args=None):
