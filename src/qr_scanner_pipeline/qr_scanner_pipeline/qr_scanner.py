@@ -2,6 +2,7 @@
 import rclpy
 import socketio
 import base64
+import time
 from rclpy.node import Node
 from std_msgs.msg import String
 
@@ -72,17 +73,23 @@ class QRCodeNode(Node):
 @sio.on("startVideo")
 def start_video():
     global qr_node, sio
+    frame_rate = 25
+    prev = 0
     try:
         qr_node.get_logger().info("Started Video Feed")
         while qr_node.cap_.isOpened():
-            _, frame = qr_node.cap_.read()
+            time_elapsed = time.time() - prev
+            if time_elapsed > 1./frame_rate:
+                prev = time.time()
 
-            encoded = cv2.imencode('.jpg', frame)[1]
+                _, frame = qr_node.cap_.read()
 
-            data = str(base64.b64encode(encoded))
-            data = data[2:len(data)-1]
+                encoded = cv2.imencode('.jpg', frame)[1]
 
-            sio.emit("videoFrame", data)
+                data = str(base64.b64encode(encoded))
+                data = data[2:len(data)-1]
+
+                sio.emit("videoFrame", data)
 
         qr_node.cap_.release()
     
