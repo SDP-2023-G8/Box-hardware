@@ -16,7 +16,6 @@ from std_msgs.msg import String
 from qr_verify.qr_verify import QRVerify
 
 sio = socketio.Client()
-cap = cv2.VideoCapture(0)
 node = None  # ROS Node variable
 audio = None  # PyAudio instance variable
 stream = None  # PyAudio stream variable
@@ -170,32 +169,6 @@ class StateMachine(Node):
             msg.data = str(self.current_state_)
             self.state_pub_.publish(msg)
 
-@sio.on("startVideo")
-def start_video():
-    global node, sio
-    try:
-        node.get_logger().info("Started Video Feed")
-        while cap.isOpened():
-            _, frame = cap.read()
-
-            encoded = cv2.imencode('.jpg', frame)[1]
-
-            data = str(base64.b64encode(encoded))
-            data = data[2:len(data)-1]
-
-            sio.emit("videoFrame", data)
-
-        cap.release()
-    
-    except Exception as err:
-        print(f"Something went wrong: {err}")
-
-@sio.on("stopVideo")
-def stop_video():
-    global node
-    node.get_logger().info("Stopped Video Feed")
-    cap.release()
-
 # Socket method that allows app user to send audio data
 # @sio.on("audioBuffer")
 # def send_audio(buffer):
@@ -236,12 +209,11 @@ def main(args=None):
     global sio, node, audio, stream
     rclpy.init(args=args)
 
+    node = StateMachine()
+
     # Set up socket (using static IP)
     sio.connect('http://192.168.43.181:5000')
 
-    node = StateMachine()
-
-    global audio, stream
     audio = pyaudio.PyAudio()
     stream = audio.open(format=pyaudio.paInt16,
                         channels=1,
