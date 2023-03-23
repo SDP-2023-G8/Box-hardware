@@ -1,15 +1,12 @@
 # ROS
 import rclpy
 import socketio
-import base64
-import time
 from rclpy.node import Node
 from std_msgs.msg import String
 
 # OpenCV
 import cv2
 
-sio = socketio.Client()
 qr_node = None
 
 class QRCodeNode(Node):
@@ -21,7 +18,7 @@ class QRCodeNode(Node):
         # Camera
         self.cap_ = cv2.VideoCapture('http://localhost:8090/?action=stream')
         self.detector_ = cv2.QRCodeDetector()
-        self.get_logger().info("Camera initialized.")
+        self.get_logger().info("Camera initialized.")       
 
         # QR message publisher
         self.qr_dec_pub_ = self.create_publisher(String, "~/qr_decoded", 10)
@@ -52,8 +49,12 @@ class QRCodeNode(Node):
         if not ret:
             self.get_logger().warn("Could not receive camera image.")
             return
+        
+        self.get_logger().info("We have an image")
+
         try:
             data, bbox, _ = self.detector_.detectAndDecode(img)
+            self.get_logger().info(f"We got this data: {data}")
         except Exception as e:
             self.get_logger().warn("Exception while detecting QR: %s." % e.__str__())
             return
@@ -76,9 +77,6 @@ def main(args=None):
     rclpy.init(args=args)
 
     qr_node = QRCodeNode()
-
-    # Set up socket (using static IP)
-    sio.connect('http://192.168.43.181:5000')
 
     rclpy.spin(qr_node)
 

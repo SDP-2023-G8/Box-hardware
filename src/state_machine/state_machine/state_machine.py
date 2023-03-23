@@ -15,8 +15,8 @@ from std_msgs.msg import String
 
 from qr_verify.qr_verify import QRVerify
 
-# sio = socketio.Client()
-# node = None  # ROS Node variable
+sio = socketio.Client()
+node = None  # ROS Node variable
 # audio = None  # PyAudio instance variable
 # stream = None  # PyAudio stream variable
 
@@ -194,25 +194,25 @@ class StateMachine(Node):
 #     stream.close()
 
 # Socket method that allows app user to unlock door
-# @sio.on("unlock")
-# def unlock_door():
-#     global node
-#     node.get_logger().info("unlock socket method called")
-#     node.send_door_request(False)
-#     node.current_state_ = State.DOOR_OPENED
-#     node.get_logger().info("Door has been unlocked by the user")
-#     node.close_door_timer_ = node.create_timer(node.door_open_time_, node.close_door_callback)
-#     node.destroy_timer(node.close_door_timer_)
-#     return "Unlocked"
+@sio.on("unlock")
+def unlock_door():
+    global node
+    node.get_logger().info("unlock socket method called")
+    node.send_door_request(False)
+    node.current_state_ = State.DOOR_OPENED
+    node.get_logger().info("Door has been unlocked by the user")
+    node.close_door_timer_ = node.create_timer(node.door_open_time_, node.close_door_callback)
+    node.destroy_timer(node.close_door_timer_)
+    return "Unlocked"
 
 def main(args=None):
-    # global sio, node, audio, stream
+    global sio, node
     rclpy.init(args=args)
 
     node = StateMachine()
 
     # # Set up socket (using static IP)
-    # sio.connect('http://192.168.43.181:5000')
+    sio.connect('http://192.168.43.181:5000')
 
     # audio = pyaudio.PyAudio()
     # stream = audio.open(format=pyaudio.paInt16,
