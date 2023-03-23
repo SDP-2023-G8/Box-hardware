@@ -1,12 +1,15 @@
 # ROS
 import rclpy
 import socketio
+import subprocess
 from rclpy.node import Node
 from std_msgs.msg import String
 
 # OpenCV
 import cv2
 
+sio = socketio.Client()
+p = None
 qr_node = None
 
 class QRCodeNode(Node):
@@ -16,7 +19,7 @@ class QRCodeNode(Node):
         self.init_params()
 
         # Camera
-        self.cap_ = cv2.VideoCapture('http://localhost:8090/?action=stream')
+        self.cap_ = cv2.VideoCapture(0)
         self.detector_ = cv2.QRCodeDetector()
         self.get_logger().info("Camera initialized.")       
 
@@ -33,7 +36,7 @@ class QRCodeNode(Node):
         self.display_ = self.declare_parameter("display", False)
         self.get_logger().info("display: {0}".format(self.display_.value))
 
-        self.cam_fps_ = self.declare_parameter("cam_fps", 15)
+        self.cam_fps_ = self.declare_parameter("cam_fps", 24)
         self.get_logger().info("cam_fps: {0}".format(self.cam_fps_.value))
 
         self.get_logger().info("*** Parameters initialized sucessfully ***")
@@ -68,12 +71,32 @@ class QRCodeNode(Node):
             self.qr_dec_pub_.publish(msg)
         self.get_logger().debug("No QR messages detected.")
 
+@sio.on("startVideo")
+def start_video():
+    print("START VIDEO")
+    global qr_node, p
+    qr_node.cap_.release()
+
+    p = subprocess.run("./script.sh")
+    qr_node.cap_ = cv2.VideoCapture('http://localhost:8090/?action=stream')
+
+@sio.on("stopVideo")
+def stop_video():
+    print("STOP VIDEO")
+    global qr_node, p
+    qr_node.cap_.release()
+    p.kill()
+    qr_node.cap_ = cv2.VideoCapture(0)
+
 def main(args=None):
     global qr_node, sio
 
     rclpy.init(args=args)
 
     qr_node = QRCodeNode()
+
+    # Set up socket using static IP
+    sio.connect("http://192.168.43.181:5000")
 
     rclpy.spin(qr_node)
 
