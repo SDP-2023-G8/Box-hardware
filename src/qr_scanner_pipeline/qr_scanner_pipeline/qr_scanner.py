@@ -52,7 +52,6 @@ class QRCodeNode(Node):
         
         try:
             data, bbox, _ = self.detector_.detectAndDecode(img)
-            self.get_logger().info(f"We scanned and got this data: {data}")
         except Exception as e:
             self.get_logger().warn("Exception while detecting QR: %s." % e.__str__())
             return
