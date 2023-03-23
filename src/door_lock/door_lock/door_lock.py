@@ -2,7 +2,7 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
-from std_srvs.srv  import SetBool
+from box_interfaces.srv import DoorLock
 # import smbus
 import os
 import time
@@ -79,32 +79,32 @@ class Motors(object):
 							self.encoder_register, 	\
 							self.num_encoder_ports)
 
-magnet = Motors() 
-port = 3         
+magnet = Motors()       
 speed = 255         
 
  
-def lock():
+def unlock(port):
 	magnet.move_motor(port,speed)      
 
 
-def unlock():
-	magnet.stop_motors() 
+def lock(port):
+	magnet.stop_motor(port) 
         
 
 class LockService(Node):
 
     def __init__(self):
         super().__init__('lock_service')
-        self.srv = self.create_service(SetBool, '~/lock', self.callback)
+        self.srv = self.create_service(DoorLock, '~/lock', self.callback)
 
     def callback(self, request, response):
-        if (request.data == False):
-            lock()
-            self.get_logger().info('door lock')
+        box_id = request.box_idx
+        if request.lock_state:
+            lock(box_id)
+            self.get_logger().info('door lock {0}'.format(box_id))
         else:
-            unlock()
-            self.get_logger().info('door unlock')
+            unlock(box_id)
+            self.get_logger().info('door unlock {0}'.format(box_id))
         response.success = True
         return response
 
