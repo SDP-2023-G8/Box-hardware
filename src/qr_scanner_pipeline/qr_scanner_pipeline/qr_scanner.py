@@ -2,6 +2,7 @@
 import rclpy
 import socketio
 import subprocess
+import time
 from rclpy.node import Node
 from std_msgs.msg import String
 
@@ -78,6 +79,7 @@ def start_video():
     qr_node.cap_.release()
 
     p = subprocess.run("./script.sh")
+    time.sleep(2)
     qr_node.cap_ = cv2.VideoCapture('http://localhost:8090/?action=stream')
 
 @sio.on("stopVideo")
