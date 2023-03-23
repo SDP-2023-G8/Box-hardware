@@ -78,7 +78,7 @@ def start_video():
     global qr_node, p
     qr_node.cap_.release()
 
-    p = subprocess.run("./script.sh")
+    p = subprocess.run("./start_stream.sh")
     time.sleep(2)
     qr_node.cap_ = cv2.VideoCapture('http://localhost:8090/?action=stream')
 
