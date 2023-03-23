@@ -19,7 +19,7 @@ class QRCodeNode(Node):
         self.init_params()
 
         # Camera
-        self.cap_ = cv2.VideoCapture(0)
+        self.cap_ = cv2.VideoCapture('http://localhost:8090/?action=stream')
         self.detector_ = cv2.QRCodeDetector()
         self.get_logger().info("Camera initialized.")
 
@@ -36,7 +36,7 @@ class QRCodeNode(Node):
         self.display_ = self.declare_parameter("display", False)
         self.get_logger().info("display: {0}".format(self.display_.value))
 
-        self.cam_fps_ = self.declare_parameter("cam_fps", 25)
+        self.cam_fps_ = self.declare_parameter("cam_fps", 24)
         self.get_logger().info("cam_fps: {0}".format(self.cam_fps_.value))
 
         self.get_logger().info("*** Parameters initialized sucessfully ***")
@@ -69,33 +69,6 @@ class QRCodeNode(Node):
             msg.data = data
             self.qr_dec_pub_.publish(msg)
         self.get_logger().debug("No QR messages detected.")
-
-@sio.on("startVideo")
-def start_video():
-    global qr_node, sio
-    try:
-        qr_node.cap_.set(cv2.CAP_PROP_BUFFERSIZE, 3)  # Change buffer size
-        qr_node.get_logger().info("Started Video Feed")
-        while qr_node.cap_.isOpened():
-            _, frame = qr_node.cap_.read()
-
-            encoded = cv2.imencode('.jpg', frame)[1]
-
-            data = str(base64.b64encode(encoded))
-            data = data[2:len(data)-1]
-
-            sio.emit("videoFrame", data)
-
-        qr_node.cap_.release()
-    
-    except Exception as err:
-        print(f"Something went wrong: {err}")
-
-@sio.on("stopVideo")
-def stop_video():
-    global qr_node
-    # qr_node.get_logger().info("Stopped Video Feed")
-    qr_node.cap_.release()
 
 def main(args=None):
     global qr_node, sio
