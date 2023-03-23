@@ -33,7 +33,7 @@ class QRCodeNode(Node):
         self.display_ = self.declare_parameter("display", False)
         self.get_logger().info("display: {0}".format(self.display_.value))
 
-        self.cam_fps_ = self.declare_parameter("cam_fps", 24)
+        self.cam_fps_ = self.declare_parameter("cam_fps", 15)
         self.get_logger().info("cam_fps: {0}".format(self.cam_fps_.value))
 
         self.get_logger().info("*** Parameters initialized sucessfully ***")
@@ -49,12 +49,10 @@ class QRCodeNode(Node):
         if not ret:
             self.get_logger().warn("Could not receive camera image.")
             return
-        
-        self.get_logger().info("We have an image")
 
+        self.get_logger().info(f"We got this image: {img}")
         try:
             data, bbox, _ = self.detector_.detectAndDecode(img)
-            self.get_logger().info(f"We got this data: {data}")
         except Exception as e:
             self.get_logger().warn("Exception while detecting QR: %s." % e.__str__())
             return
