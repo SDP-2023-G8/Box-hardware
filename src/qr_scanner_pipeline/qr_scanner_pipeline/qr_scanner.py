@@ -3,6 +3,7 @@ import rclpy
 import socketio
 import subprocess
 import time
+import psutil
 from rclpy.node import Node
 from std_msgs.msg import String
 
@@ -11,6 +12,7 @@ import cv2
 
 sio = socketio.Client()
 p = None
+pid = None
 qr_node = None
 
 class QRCodeNode(Node):
@@ -72,22 +74,30 @@ class QRCodeNode(Node):
             self.qr_dec_pub_.publish(msg)
         self.get_logger().debug("No QR messages detected.")
 
+def kill(proc_id):
+    process = psutil.Process(proc_id)
+    for proc in process.children(recursive=True):
+        proc.kill()
+
+    process.kill()
+
 @sio.on("startVideo")
 def start_video():
+    global qr_node, p, pid
     qr_node.get_logger().debug("Started the video")
-    global qr_node, p
-    qr_node.cap_.release()
 
-    p = subprocess.run("./start_stream.sh")
-    time.sleep(2)
+    p = subprocess.run("/home/joflesan/Desktop/start_stream.sh")
+    pid = p.pid
+
     qr_node.cap_ = cv2.VideoCapture('http://localhost:8090/?action=stream')
 
 @sio.on("stopVideo")
 def stop_video():
+    global qr_node, p, pid
     qr_node.get_logger().debug("Stopped the video")
-    global qr_node, p
-    qr_node.cap_.release()
-    p.kill()
+
+    kill(pid)
+    time.sleep(1)
     qr_node.cap_ = cv2.VideoCapture(0)
 
 def main(args=None):
