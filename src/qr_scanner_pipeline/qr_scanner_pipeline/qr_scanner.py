@@ -73,7 +73,7 @@ class QRCodeNode(Node):
 
 @sio.on("startVideo")
 def start_video():
-    print("START VIDEO")
+    qr_node.get_logger().debug("Started the video")
     global qr_node, p
     qr_node.cap_.release()
 
@@ -82,7 +82,7 @@ def start_video():
 
 @sio.on("stopVideo")
 def stop_video():
-    print("STOP VIDEO")
+    qr_node.get_logger().debug("Stopped the video")
     global qr_node, p
     qr_node.cap_.release()
     p.kill()
