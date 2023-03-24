@@ -86,7 +86,7 @@ def start_video():
     global qr_node, p, pid
     qr_node.get_logger().debug("Started the video")
 
-    p = subprocess.run("/home/sdp8/start_stream.sh")
+    p = subprocess.Popen("/home/sdp8/start_stream.sh")
     pid = p.pid
 
     qr_node.cap_ = cv2.VideoCapture('http://localhost:8090/?action=stream')
