@@ -3,6 +3,7 @@ import rclpy
 import socketio
 import subprocess
 import time
+import pyaudio
 import psutil
 from rclpy.node import Node
 from std_msgs.msg import String
@@ -106,6 +107,26 @@ def stop_video():
     qr_node.cap_ = cv2.VideoCapture(0)
     streaming = False
 
+def init_audio(rate=16000):
+    global pa, s
+    pa = pyaudio.PyAudio()
+    s = pa.open(output=True,
+                channels=1,
+                rate=rate,
+                format=pyaudio.paInt16,
+                frames_per_buffer=1280*2,           
+                output_device_index=0)
+
+@sio.on("stopAudio")
+def close_audio():
+    global pa, s
+    s.stop_stream()
+
+@sio.on("audioBuffer")
+def send_audio(buffer):
+    global pa, s
+    s.write(buffer)
+
 def main(args=None):
     global qr_node, sio
 
@@ -115,6 +136,7 @@ def main(args=None):
 
     # Set up socket using static IP
     sio.connect("http://192.168.43.181:5000")
+    init_audio()
 
     rclpy.spin(qr_node)
 
