@@ -11,6 +11,7 @@ from std_msgs.msg import String
 import cv2
 
 sio = socketio.Client()
+streaming = False
 p = None
 pid = None
 qr_node = None
@@ -52,7 +53,7 @@ class QRCodeNode(Node):
         
         # Detect and decode QR message
         ret, img = self.cap_.read()
-        if not ret:
+        if not ret and not streaming:
             self.get_logger().warn("Could not receive camera image.")
             return
         
@@ -83,13 +84,14 @@ def kill(proc_id):
 
 @sio.on("startVideo")
 def start_video():
-    global qr_node, p, pid
+    global qr_node, p, pid, streaming
     qr_node.get_logger().debug("Started the video")
 
     p = subprocess.Popen("/home/sdp8/start_stream.sh")
     pid = p.pid
 
     qr_node.cap_ = cv2.VideoCapture('http://localhost:8090/?action=stream')
+    streaming = True
 
 @sio.on("stopVideo")
 def stop_video():
@@ -99,6 +101,7 @@ def stop_video():
     kill(pid)
     time.sleep(1)
     qr_node.cap_ = cv2.VideoCapture(0)
+    streaming = False
 
 def main(args=None):
     global qr_node, sio
