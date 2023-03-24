@@ -60,7 +60,8 @@ class QRCodeNode(Node):
         try:
             data, bbox, _ = self.detector_.detectAndDecode(img)
         except Exception as e:
-            self.get_logger().warn("Exception while detecting QR: %s." % e.__str__())
+            if not streaming:
+                self.get_logger().warn("Exception while detecting QR: %s." % e.__str__())
             return
         
         if self.display_.value:
@@ -73,7 +74,9 @@ class QRCodeNode(Node):
             msg = String()
             msg.data = data
             self.qr_dec_pub_.publish(msg)
-        self.get_logger().debug("No QR messages detected.")
+
+        if not streaming:
+            self.get_logger().debug("No QR messages detected.")
 
 def kill(proc_id):
     process = psutil.Process(proc_id)
