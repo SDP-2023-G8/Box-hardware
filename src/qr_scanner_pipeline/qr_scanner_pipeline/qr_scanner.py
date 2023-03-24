@@ -1,6 +1,8 @@
 # ROS
 import rclpy
 import socketio
+import threading
+import queue
 import subprocess
 import time
 import pyaudio
@@ -12,7 +14,9 @@ from std_msgs.msg import String
 import cv2
 
 sio = socketio.Client()
+q = queue.Queue(maxsize=2000)
 streaming = False
+listening = True
 p = None
 pid = None
 qr_node = None
@@ -99,7 +103,7 @@ def start_video():
 
 @sio.on("stopVideo")
 def stop_video():
-    global qr_node, p, pid
+    global qr_node, p, pid, streaming
     qr_node.get_logger().debug("Stopped the video")
 
     kill(pid)
@@ -107,8 +111,18 @@ def stop_video():
     qr_node.cap_ = cv2.VideoCapture(0)
     streaming = False
 
+def listen():
+    global s, q, listening
+    while listening:
+        if not q.empty():
+            frame = q.get()
+            s.write(frame)
+
+    return  # Kill thread if no longer listening
+
+@sio.on("startAudio")
 def init_audio(rate=16000):
-    global pa, s
+    global pa, s, listening
     pa = pyaudio.PyAudio()
     s = pa.open(output=True,
                 channels=1,
@@ -116,11 +130,19 @@ def init_audio(rate=16000):
                 format=pyaudio.paInt16,
                 frames_per_buffer=1280*2,           
                 output_device_index=0)
+    
+    listening = True
+    s.start_stream()
+    threading.Thread(target=listen).start()
 
 @sio.on("stopAudio")
 def close_audio():
-    global pa, s
+    global pa, s, listening
+    listening = False
+    time.sleep(1)
     s.stop_stream()
+    s.close()
+    pa.terminate()
 
 @sio.on("audioBuffer")
 def send_audio(buffer):
