@@ -4,6 +4,7 @@ import os
 
 import rclpy
 from rclpy.node import Node
+from ament_index_python.packages import get_package_share_directory
 
 from std_msgs.msg import String
 from geometry_msgs.msg import AccelStamped
@@ -72,7 +73,8 @@ class Pub_accelerometer(Node):
 
     def play_alarm_callback(self):
         self.destroy_timer(self.play_timer_)
-        os.system('aplay ./examples/speaker/sounds/alarm.wav -D default:CARD=UACDemoV10')
+        sound_path = os.path.join(get_package_share_directory('speaker'), 'alarm.wav')
+        os.system('aplay {0} -D default:CARD=UACDemoV10'.format(sound_path))
         self.alarm_playing = False
         self.acc_timer_ = self.create_timer(self.timer_period, self.timer_callback)
 
