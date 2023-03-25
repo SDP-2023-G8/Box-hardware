@@ -14,9 +14,11 @@ from std_msgs.msg import String
 import cv2
 
 sio = socketio.Client()
-q = queue.Queue(maxsize=2000)
+q = queue.Queue(maxsize=3000)
 streaming = False
 listening = True
+s = None
+pa = None
 p = None
 pid = None
 qr_node = None
@@ -59,7 +61,7 @@ class QRCodeNode(Node):
         # Detect and decode QR message
         ret, img = self.cap_.read()
         if not ret and not streaming:
-            self.get_logger().warn("Could not receive camera image.")
+            #  self.get_logger().warn("Could not receive camera image.")
             return
         
         try:
