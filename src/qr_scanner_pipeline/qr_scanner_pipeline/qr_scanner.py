@@ -111,44 +111,6 @@ def stop_video():
     qr_node.cap_ = cv2.VideoCapture(0)
     streaming = False
 
-def listen():
-    global s, q, listening
-    while listening:
-        if not q.empty():
-            frame = q.get()
-            s.write(frame)
-
-    return  # Kill thread if no longer listening
-
-@sio.on("startAudio")
-def init_audio(rate=16000):
-    global pa, s, listening
-    pa = pyaudio.PyAudio()
-    s = pa.open(output=True,
-                channels=1,
-                rate=rate,
-                format=pyaudio.paInt16,
-                frames_per_buffer=1280*2,           
-                output_device_index=0)
-    
-    listening = True
-    s.start_stream()
-    threading.Thread(target=listen).start()
-
-@sio.on("stopAudio")
-def close_audio():
-    global pa, s, listening
-    listening = False
-    time.sleep(1)
-    s.stop_stream()
-    s.close()
-    pa.terminate()
-
-@sio.on("audioBuffer")
-def send_audio(buffer):
-    global pa, s
-    s.write(buffer)
-
 def main(args=None):
     global qr_node, sio
 
@@ -158,7 +120,6 @@ def main(args=None):
 
     # Set up socket using static IP
     sio.connect("http://192.168.43.181:5000")
-    init_audio()
 
     rclpy.spin(qr_node)
 
