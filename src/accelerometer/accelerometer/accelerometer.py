@@ -66,7 +66,7 @@ class Pub_accelerometer(Node):
             self.get_logger().info('Triggering the alarm')
             alarm_playing = True
             self.destroy_timer(self.acc_timer_)
-            self.play_timer_ = self.create_timer(0.1, lambda: self.play_alarm_callback())
+            self.play_timer_ = self.create_timer(0, lambda: self.play_alarm_callback())
 
         self.publisher_.publish(msg)
         self.get_logger().debug('Publishing: "%s"' % msg)
