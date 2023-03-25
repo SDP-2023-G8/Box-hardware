@@ -62,7 +62,7 @@ class Pub_accelerometer(Node):
         self.past_samples.append(acc_value)
         if not self.alarm_playing and self.is_moving():
             self.get_logger().info('Triggering the alarm')
-            alarm_playing = True
+            self.alarm_playing = True
             self.destroy_timer(self.acc_timer_)
             self.play_timer_ = self.create_timer(0, lambda: self.play_alarm_callback())
 
