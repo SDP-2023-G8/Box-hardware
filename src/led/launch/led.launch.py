@@ -1,10 +1,6 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
 
-PARAMS = {
-    'PIN': 14
-}
-
 def generate_launch_description():
     return LaunchDescription([
         Node(
@@ -13,8 +9,5 @@ def generate_launch_description():
             name='led',
             output='screen',
             emulate_tty=True,
-            parameters=[
-                PARAMS
-                ]
         )
     ])
