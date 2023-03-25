@@ -66,10 +66,9 @@ class Pub_accelerometer(Node):
             self.destroy_timer(self.acc_timer_)
             self.play_timer_ = self.create_timer(0, lambda: self.play_alarm_callback())
 
-        self.publisher_.publish(msg)
-
         if self.publisher_.get_subscription_count() > 0:
             self.get_logger().debug('Publishing: "%s"' % msg)
+            self.publisher_.publish(msg)
 
     def play_alarm_callback(self):
         self.destroy_timer(self.play_timer_)
