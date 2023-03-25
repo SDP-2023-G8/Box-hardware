@@ -12,6 +12,7 @@ from rclpy.qos import QoSProfile, QoSHistoryPolicy
 from rclpy.executors import SingleThreadedExecutor, MultiThreadedExecutor
 from std_srvs.srv import SetBool
 from std_msgs.msg import String
+from box_interfaces.srv import DoorLock
 
 from qr_verify.qr_verify import QRVerify
 
@@ -37,7 +38,7 @@ class StateMachine(Node):
     QR_MSG_TYPE = String
 
     LOCK_SERVICE_NAME = "/lock_srv"
-    LOCK_SERVICE_TYPE = SetBool
+    LOCK_SERVICE_TYPE = DoorLock
 
     LED_SERVICE_NAME = "/led_srv"
     LED_SERVICE_TYPE = SetBool
@@ -108,7 +109,8 @@ class StateMachine(Node):
 
     def send_door_request(self, data):
         door_req = self.LOCK_SERVICE_TYPE.Request()
-        door_req.data = data
+        door_req.box_idx = 3
+        door_req.lock_state = data
         door_fut = self.door_lock_client_.call_async(door_req)
         self.get_logger().info("Sending a request to the door lock service")
         return door_fut
