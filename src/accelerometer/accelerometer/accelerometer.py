@@ -47,8 +47,6 @@ class Pub_accelerometer(Node):
             "Accelererometer publisher topic: {0}. Publishing frequency: {1}Hz.".format(self.publisher_.topic_name, 1e9 / self.acc_timer_.timer_period_ns))
 
     def timer_callback(self):
-        if self.publisher_.get_subscription_count() == 0:
-            return
         msg = AccelStamped()
         msg.header.stamp = self.get_clock().now().to_msg()
 
@@ -69,7 +67,9 @@ class Pub_accelerometer(Node):
             self.play_timer_ = self.create_timer(0, lambda: self.play_alarm_callback())
 
         self.publisher_.publish(msg)
-        self.get_logger().debug('Publishing: "%s"' % msg)
+
+        if self.publisher_.get_subscription_count() > 0:
+            self.get_logger().debug('Publishing: "%s"' % msg)
 
     def play_alarm_callback(self):
         self.destroy_timer(self.play_timer_)
