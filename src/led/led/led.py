@@ -1,4 +1,4 @@
-from std_srvs.srv  import SetBool
+from led_interfaces.srv import Led
 import rclpy
 from rclpy.node import Node
 
@@ -11,23 +11,24 @@ class led(Node):
 
     def __init__(self):
         super().__init__('led')
-        self.PIN = self.declare_parameter("PIN",14)
         GPIO.setmode(GPIO.BCM)
         GPIO.setwarnings(False)
-        GPIO.setup(self.PIN.value,GPIO.OUT)
-        self.srv = self.create_service(SetBool, '~/led', self.callback)
+        self.srv = self.create_service(Led, '~/led', self.callback)
         self.get_logger().info('[Node] Led Running')
 
     def callback(self, request, response):
-        if (request.data == True):
-            self.get_logger().info('led on')
-            GPIO.output(self.PIN.value,GPIO.HIGH)
-
-        else:
-            self.get_logger().info('led off')
-
-            GPIO.output(self.PIN.value,GPIO.LOW)
-        response.success = True 
+        try:
+            gpio_nr = request.gpio
+            GPIO.setup(gpio_nr, GPIO.OUT)
+            if request.led_state:
+                self.get_logger().info('led {0} on'.format(gpio_nr))
+                GPIO.output(gpio_nr, GPIO.HIGH)
+            else:
+                self.get_logger().info('led {0} off'.format(gpio_nr))
+                GPIO.output(gpio_nr, GPIO.LOW)
+            response.success = True
+        except:
+            response.success = False
         return response
 
 def main():
