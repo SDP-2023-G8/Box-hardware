@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+import math
+
 import rclpy
 from rclpy.node import Node
 
@@ -37,6 +39,9 @@ class Pub_accelerometer(Node):
         msg.accel.linear.x = x
         msg.accel.linear.y = y
         msg.accel.linear.z = z
+
+        acc_value = math.sqrt(x*x + y*y + z*z)
+        self.get_logger().info(acc_value)
 
         self.publisher_.publish(msg)
         self.get_logger().debug('Publishing: "%s"' % msg)
