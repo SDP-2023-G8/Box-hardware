@@ -14,9 +14,11 @@ from std_msgs.msg import String
 import cv2
 
 sio = socketio.Client()
-q = queue.Queue(maxsize=2000)
+q = queue.Queue(maxsize=3000)
 streaming = False
 listening = True
+s = None
+pa = None
 p = None
 pid = None
 qr_node = None
@@ -59,7 +61,7 @@ class QRCodeNode(Node):
         # Detect and decode QR message
         ret, img = self.cap_.read()
         if not ret and not streaming:
-            self.get_logger().warn("Could not receive camera image.")
+            #  self.get_logger().warn("Could not receive camera image.")
             return
         
         try:
@@ -121,15 +123,15 @@ def listen():
     return  # Kill thread if no longer listening
 
 @sio.on("startAudio")
-def init_audio(rate=16000):
+def init_audio():
     global pa, s, listening
     pa = pyaudio.PyAudio()
     s = pa.open(output=True,
                 channels=1,
-                rate=rate,
+                rate=48000,
                 format=pyaudio.paInt16,
-                frames_per_buffer=1280*2,           
-                output_device_index=0)
+                frames_per_buffer=3840,
+                output_device_index=1)
     
     listening = True
     s.start_stream()
@@ -146,8 +148,8 @@ def close_audio():
 
 @sio.on("audioBuffer")
 def send_audio(buffer):
-    global pa, s
-    s.write(buffer)
+    global s
+    q.put(buffer)
 
 def main(args=None):
     global qr_node, sio
@@ -158,7 +160,6 @@ def main(args=None):
 
     # Set up socket using static IP
     sio.connect("http://192.168.43.181:5000")
-    init_audio()
 
     rclpy.spin(qr_node)
 
