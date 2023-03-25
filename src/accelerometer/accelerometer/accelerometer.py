@@ -72,10 +72,10 @@ class Pub_accelerometer(Node):
         self.get_logger().debug('Publishing: "%s"' % msg)
 
     def play_alarm_callback(self):
+        self.destroy_timer(self.play_timer_)
         os.system('aplay ./examples/speaker/sounds/alarm.wav -D default:CARD=UACDemoV10')
         self.alarm_playing = False
         self.acc_timer_ = self.create_timer(self.timer_period, self.timer_callback)
-        self.destroy_timer(self.play_timer_)
 
 def main():
     rclpy.init()
