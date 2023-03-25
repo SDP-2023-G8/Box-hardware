@@ -13,19 +13,22 @@ class led(Node):
         super().__init__('led')
         GPIO.setmode(GPIO.BCM)
         GPIO.setwarnings(False)
-        GPIO.setup(self.PIN.value,GPIO.OUT)
         self.srv = self.create_service(Led, '~/led', self.callback)
         self.get_logger().info('[Node] Led Running')
 
     def callback(self, request, response):
-        gpio_nr = request.gpio
-        if request.led_state:
-            self.get_logger().info('led on')
-            GPIO.output(gpio_nr, GPIO.HIGH)
-        else:
-            self.get_logger().info('led off')
-            GPIO.output(gpio_nr, GPIO.LOW)
-        response.success = True 
+        try:
+            gpio_nr = request.gpio
+            GPIO.setup(gpio_nr, GPIO.OUT)
+            if request.led_state:
+                self.get_logger().info('led {0} on'.format(gpio_nr))
+                GPIO.output(gpio_nr, GPIO.HIGH)
+            else:
+                self.get_logger().info('led {0} off'.format(gpio_nr))
+                GPIO.output(gpio_nr, GPIO.LOW)
+            response.success = True
+        except:
+            response.success = False
         return response
 
 def main():
