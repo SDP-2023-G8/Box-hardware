@@ -101,7 +101,7 @@ class StateMachine(Node):
 
     def send_door_request(self, data):
         door_req = self.LOCK_SERVICE_TYPE.Request()
-        door_req.box_idx = 3
+        door_req.box_idx = 1
         door_req.lock_state = data
         door_fut = self.door_lock_client_.call_async(door_req)
         self.get_logger().info("Sending a request to the door lock service")
