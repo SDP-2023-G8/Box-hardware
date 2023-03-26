@@ -193,7 +193,7 @@ def main(args=None):
 
     node = StateMachine()
 
-    # # Set up socket (using static IP)
+    # Set up socket (using static IP)
     sio.connect('http://192.168.43.181:5000')
 
     rclpy.spin(node)

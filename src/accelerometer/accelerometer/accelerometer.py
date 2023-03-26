@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import math
 import os
+import socketio
 
 import rclpy
 from rclpy.node import Node
@@ -14,6 +15,8 @@ import board
 import digitalio
 import busio
 import adafruit_lis3dh
+
+sio = socketio.Client()
 
 class Pub_accelerometer(Node):
     ACC_PUB_TOPIC = '~/acc'
@@ -72,14 +75,19 @@ class Pub_accelerometer(Node):
             self.publisher_.publish(msg)
 
     def play_alarm_callback(self):
+        global sio
         self.destroy_timer(self.play_timer_)
         sound_path = os.path.join(get_package_share_directory('speaker'), 'alarm.wav')
+        sio.emit("alarm")  # Send alarm message to app
         os.system('aplay {0} -D default:CARD=UACDemoV10'.format(sound_path))
         self.alarm_playing = False
         self.acc_timer_ = self.create_timer(self.timer_period, self.timer_callback)
 
 def main():
     rclpy.init()
+
+    # Set up socket using static IP
+    sio.connect('http://192.168.43.181:5000')
 
     pub_accelerometer = Pub_accelerometer()
 
