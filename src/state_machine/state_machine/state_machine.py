@@ -13,6 +13,7 @@ from rclpy.executors import SingleThreadedExecutor, MultiThreadedExecutor
 from std_srvs.srv import SetBool
 from std_msgs.msg import String
 from box_interfaces.srv import DoorLock
+from led_interfaces.srv import Led
 
 from qr_verify.qr_verify import QRVerify
 
@@ -41,7 +42,7 @@ class StateMachine(Node):
     LOCK_SERVICE_TYPE = DoorLock
 
     LED_SERVICE_NAME = "/led_srv"
-    LED_SERVICE_TYPE = SetBool
+    LED_SERVICE_TYPE = Led
 
     SPEAKER_SERVICE_NAME = "/speaker_srv"
     SPEAKER_SERVICE_TYPE = SetBool
@@ -109,7 +110,7 @@ class StateMachine(Node):
 
     def send_door_request(self, data):
         door_req = self.LOCK_SERVICE_TYPE.Request()
-        door_req.box_idx = 3
+        door_req.box_idx = 1
         door_req.lock_state = data
         door_fut = self.door_lock_client_.call_async(door_req)
         self.get_logger().info("Sending a request to the door lock service")
@@ -117,7 +118,8 @@ class StateMachine(Node):
     
     def send_led_request(self, data):
         led_req = self.LED_SERVICE_TYPE.Request()
-        led_req.data = data
+        led_req.gpio = 14
+        led_req.led_state = data
         led_fut = self.led_client_.call_async(led_req)
         self.get_logger().info("Sending a request to the led service")
         return led_fut
