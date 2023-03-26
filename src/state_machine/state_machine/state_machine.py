@@ -169,6 +169,12 @@ class StateMachine(Node):
             msg.data = str(self.current_state_)
             self.state_pub_.publish(msg)
 
+# Socket method that allows app user to (temporarily) disable the alarm
+@sio.on("disable_alarm")
+def disable_alarm():
+    global node
+    node.get_logger().info("disable alarm method called")
+
 # Socket method that allows app user to unlock door
 @sio.on("unlock")
 def unlock_door():
