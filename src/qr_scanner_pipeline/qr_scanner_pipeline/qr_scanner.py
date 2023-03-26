@@ -1,11 +1,8 @@
 # ROS
 import rclpy
 import socketio
-import threading
-import queue
 import subprocess
 import time
-import pyaudio
 import psutil
 from rclpy.node import Node
 from std_msgs.msg import String
@@ -14,7 +11,6 @@ from std_msgs.msg import String
 import cv2
 
 sio = socketio.Client()
-q = queue.Queue(maxsize=3000)
 streaming = False
 listening = True
 s = None
@@ -61,7 +57,7 @@ class QRCodeNode(Node):
         # Detect and decode QR message
         ret, img = self.cap_.read()
         if not ret and not streaming:
-            #  self.get_logger().warn("Could not receive camera image.")
+            self.get_logger().debug("Could not receive camera image.")
             return
         
         try:
