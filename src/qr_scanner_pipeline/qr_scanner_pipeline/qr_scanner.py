@@ -1,11 +1,8 @@
 # ROS
 import rclpy
 import socketio
-import threading
-import queue
 import subprocess
 import time
-import pyaudio
 import psutil
 from rclpy.node import Node
 from std_msgs.msg import String
@@ -14,7 +11,6 @@ from std_msgs.msg import String
 import cv2
 
 sio = socketio.Client()
-q = queue.Queue(maxsize=3000)
 streaming = False
 listening = True
 s = None
@@ -61,7 +57,7 @@ class QRCodeNode(Node):
         # Detect and decode QR message
         ret, img = self.cap_.read()
         if not ret and not streaming:
-            #  self.get_logger().warn("Could not receive camera image.")
+            self.get_logger().debug("Could not receive camera image.")
             return
         
         try:
@@ -121,35 +117,6 @@ def listen():
             s.write(frame)
 
     return  # Kill thread if no longer listening
-
-@sio.on("startAudio")
-def init_audio():
-    global pa, s, listening
-    pa = pyaudio.PyAudio()
-    s = pa.open(output=True,
-                channels=1,
-                rate=48000,
-                format=pyaudio.paInt16,
-                frames_per_buffer=3840,
-                output_device_index=1)
-    
-    listening = True
-    s.start_stream()
-    threading.Thread(target=listen).start()
-
-@sio.on("stopAudio")
-def close_audio():
-    global pa, s, listening
-    listening = False
-    time.sleep(1)
-    s.stop_stream()
-    s.close()
-    pa.terminate()
-
-@sio.on("audioBuffer")
-def send_audio(buffer):
-    global s
-    q.put(buffer)
 
 def main(args=None):
     global qr_node, sio
