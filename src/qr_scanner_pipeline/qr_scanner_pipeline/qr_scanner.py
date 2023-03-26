@@ -1,11 +1,23 @@
 # ROS
 import rclpy
+import socketio
+import subprocess
+import time
+import psutil
 from rclpy.node import Node
 from std_msgs.msg import String
 
 # OpenCV
 import cv2
 
+sio = socketio.Client()
+streaming = False
+listening = True
+s = None
+pa = None
+p = None
+pid = None
+qr_node = None
 
 class QRCodeNode(Node):
     def __init__(self):
@@ -16,7 +28,7 @@ class QRCodeNode(Node):
         # Camera
         self.cap_ = cv2.VideoCapture(0)
         self.detector_ = cv2.QRCodeDetector()
-        self.get_logger().info("Camera initialized.")
+        self.get_logger().info("Camera initialized.")       
 
         # QR message publisher
         self.qr_dec_pub_ = self.create_publisher(String, "~/qr_decoded", 10)
@@ -31,7 +43,7 @@ class QRCodeNode(Node):
         self.display_ = self.declare_parameter("display", False)
         self.get_logger().info("display: {0}".format(self.display_.value))
 
-        self.cam_fps_ = self.declare_parameter("cam_fps", 15)
+        self.cam_fps_ = self.declare_parameter("cam_fps", 24)
         self.get_logger().info("cam_fps: {0}".format(self.cam_fps_.value))
 
         self.get_logger().info("*** Parameters initialized sucessfully ***")
@@ -44,13 +56,15 @@ class QRCodeNode(Node):
         
         # Detect and decode QR message
         ret, img = self.cap_.read()
-        if not ret:
-            self.get_logger().warn("Could not receive camera image.")
+        if not ret and not streaming:
+            self.get_logger().debug("Could not receive camera image.")
             return
+        
         try:
             data, bbox, _ = self.detector_.detectAndDecode(img)
         except Exception as e:
-            self.get_logger().warn("Exception while detecting QR: %s." % e.__str__())
+            if not streaming:
+                self.get_logger().warn("Exception while detecting QR: %s." % e.__str__())
             return
         
         if self.display_.value:
@@ -63,13 +77,47 @@ class QRCodeNode(Node):
             msg = String()
             msg.data = data
             self.qr_dec_pub_.publish(msg)
-        self.get_logger().debug("No QR messages detected.")
 
+        if not streaming:
+            self.get_logger().debug("No QR messages detected.")
+
+def kill(proc_id):
+    process = psutil.Process(proc_id)
+    for proc in process.children(recursive=True):
+        proc.kill()
+
+    process.kill()
+
+@sio.on("startVideo")
+def start_video():
+    global qr_node, p, pid, streaming
+    qr_node.get_logger().debug("Started the video")
+
+    p = subprocess.Popen("/home/sdp8/start_stream.sh")
+    pid = p.pid
+
+    qr_node.cap_ = cv2.VideoCapture('http://localhost:8090/?action=stream')
+    streaming = True
+
+@sio.on("stopVideo")
+def stop_video():
+    global qr_node, p, pid, streaming
+    qr_node.get_logger().debug("Stopped the video")
+
+    kill(pid)
+    time.sleep(1)
+    qr_node.cap_ = cv2.VideoCapture(0)
+    streaming = False
 
 def main(args=None):
+    global qr_node, sio
+
     rclpy.init(args=args)
 
     qr_node = QRCodeNode()
+
+    # Set up socket using static IP
+    sio.connect("http://192.168.43.181:5000")
 
     rclpy.spin(qr_node)
 

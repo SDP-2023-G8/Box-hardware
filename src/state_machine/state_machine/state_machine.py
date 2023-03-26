@@ -1,6 +1,7 @@
 # Python
 from enum import Enum
-import time
+import socketio
+import cv2, base64
 
 # ROS
 import rclpy
@@ -14,6 +15,10 @@ from led_interfaces.srv import Led
 
 from qr_verify.qr_verify import QRVerify
 
+sio = socketio.Client()
+node = None  # ROS Node variable
+
+CHUNK = 3584
 
 class State(Enum):
     INIT = 0
@@ -147,7 +152,7 @@ class StateMachine(Node):
 
         # Execute only once
         self.destroy_timer(self.verify_timer_)
-    
+
     # Listens for QR codes when in DOOR_CLOSED state
     def qr_msg_callback(self, msg):
         if self.current_state_ != State.DOOR_CLOSED:
@@ -164,11 +169,26 @@ class StateMachine(Node):
             msg.data = str(self.current_state_)
             self.state_pub_.publish(msg)
 
+# Socket method that allows app user to unlock door
+@sio.on("unlock")
+def unlock_door():
+    global node
+    node.get_logger().info("unlock socket method called")
+    node.send_door_request(False)
+    node.current_state_ = State.DOOR_OPENED
+    node.get_logger().info("Door has been unlocked by the user")
+    node.close_door_timer_ = node.create_timer(node.door_open_time_, node.close_door_callback)
+    node.destroy_timer(node.close_door_timer_)
+    return "Unlocked"
 
 def main(args=None):
+    global sio, node
     rclpy.init(args=args)
 
     node = StateMachine()
+
+    # # Set up socket (using static IP)
+    sio.connect('http://192.168.43.181:5000')
 
     rclpy.spin(node)
 
