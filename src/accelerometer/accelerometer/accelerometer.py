@@ -24,7 +24,7 @@ class Pub_accelerometer(Node):
     ACC_PUB_TOPIC = '~/acc'
 
     # Motion detection
-    THRESHOLD = 0.5
+    THRESHOLD = 1.5
     # At least N_ABOVE_THRESHOLD samples above threshold among last WINDOWS_SIZE samples
     WIND0W_SIZE = 4
     N_ABOVE_THRESHOLD = 2
