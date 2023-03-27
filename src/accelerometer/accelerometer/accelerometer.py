@@ -17,6 +17,8 @@ import busio
 import adafruit_lis3dh
 
 sio = socketio.Client()
+pub_accelerometer = None
+alarmDisabled = False
 
 class Pub_accelerometer(Node):
     ACC_PUB_TOPIC = '~/acc'
@@ -64,7 +66,7 @@ class Pub_accelerometer(Node):
         acc_value = math.sqrt(x*x + y*y + z*z)
         self.past_samples.pop(0)
         self.past_samples.append(acc_value)
-        if not self.alarm_playing and self.is_moving():
+        if not self.alarm_playing and self.is_moving() and not alarmDisabled:
             self.get_logger().info('Triggering the alarm')
             self.alarm_playing = True
             self.destroy_timer(self.acc_timer_)
@@ -75,13 +77,27 @@ class Pub_accelerometer(Node):
             self.publisher_.publish(msg)
 
     def play_alarm_callback(self):
-        global sio
+        global sio, alarmDisabled
         self.destroy_timer(self.play_timer_)
         sound_path = os.path.join(get_package_share_directory('speaker'), 'alarm.wav')
         sio.emit("alarm")  # Send alarm message to app
         os.system('aplay {0} -D default:CARD=UACDemoV10'.format(sound_path))
         self.alarm_playing = False
         self.acc_timer_ = self.create_timer(self.timer_period, self.timer_callback)
+
+# Socket method that allows app user to (temporarily) disable the alarm
+@sio.on("disable_alarm")
+def disable_alarm():
+    global pub_accelerometer, alarmDisabled
+    pub_accelerometer.get_logger().info("disable alarm method called")
+    alarmDisabled = True
+
+# Socket method that enables the alarm again
+@sio.on("enable_alarm")
+def enable_alarm():
+    global pub_accelerometer, alarmDisabled
+    pub_accelerometer.get_logger().info("enable alarm method called")
+    alarmDisabled = False
 
 def main():
     rclpy.init()
