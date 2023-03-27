@@ -100,6 +100,7 @@ def enable_alarm():
     alarmDisabled = False
 
 def main():
+    global pub_accelerometer
     rclpy.init()
 
     # Set up socket using static IP
