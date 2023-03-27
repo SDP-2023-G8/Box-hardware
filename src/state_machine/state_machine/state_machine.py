@@ -184,7 +184,6 @@ def unlock_door():
     node.current_state_ = State.DOOR_OPENED
     node.get_logger().info("Door has been unlocked by the user")
     node.close_door_timer_ = node.create_timer(node.door_open_time_, node.close_door_callback)
-    node.destroy_timer(node.close_door_timer_)
     return "Unlocked"
 
 def main(args=None):
