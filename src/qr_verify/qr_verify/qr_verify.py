@@ -51,6 +51,9 @@ class QRVerify:
             # Toggle the scanned flag
             requests.put(f"http://{self._hostname}:{self._port}/api/v1/deliveries/{deliveryId}")
 
+            # Update the delivered status for this delivery
+            requests.get(f"http://192.168.43.181:5000/api/v1/deliveries/{deliveryId}/delivered")
+
             return jsonObject['result']
         except Exception:
             return False  # Not catching exceptions to not crash state machine
