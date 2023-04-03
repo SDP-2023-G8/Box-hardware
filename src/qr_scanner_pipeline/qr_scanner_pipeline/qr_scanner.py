@@ -3,6 +3,9 @@ import rclpy
 import socketio
 import subprocess
 import time
+import pyaudio
+import threading
+import queue
 import psutil
 from rclpy.node import Node
 from std_msgs.msg import String
@@ -13,6 +16,7 @@ import cv2
 sio = socketio.Client()
 streaming = False
 listening = True
+q = queue.Queue(maxsize=3000)
 s = None
 pa = None
 p = None
@@ -108,6 +112,44 @@ def stop_video():
     time.sleep(1)
     qr_node.cap_ = cv2.VideoCapture(0)
     streaming = False
+
+def listen():
+    global s, q, listening
+    while listening:
+        if not q.empty():
+            frame = q.get()
+            s.write(frame)
+
+    return  # Kill thread if no longer listening
+
+@sio.on("startAudio")
+def start_audio():
+    global s, pa, listening, audio_thread
+    pa = pyaudio.PyAudio()
+    s = pa.open(output=True,
+                channels=1,
+                rate=48000,
+                format=pyaudio.paInt16,
+                frames_per_buffer=3840,           
+                output_device_index=0)
+    
+    listening = True
+    s.start_stream()
+    threading.Thread(target=listen).start()
+
+@sio.on("stopAudio")
+def close_audio():
+    global pa, s, listening, audio_thread
+    listening = False
+    time.sleep(1)
+    s.stop_stream()
+    s.close()
+    pa.terminate()
+
+@sio.on("audioBuffer")
+def send_audio(buffer):
+    global s, q
+    q.put(buffer)
 
 def main(args=None):
     global qr_node, sio
