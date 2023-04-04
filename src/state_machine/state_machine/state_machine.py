@@ -140,7 +140,7 @@ class StateMachine(Node):
 
     def verification_failure_callback(self):
         self.send_led_request(self.LED_FAIL_GPIO, False)
-	    self.current_state_ = State.DOOR_CLOSED
+        self.current_state_ = State.DOOR_CLOSED
         # Execute only once
         self.destroy_timer(self.verify_fail_timer_)
 
