@@ -183,7 +183,7 @@ class StateMachine(Node):
 def unlock_door():
     global node
     node.get_logger().info("unlock socket method called")
-    node.send_led_request(True)
+    node.send_led_request(node.LED_SUCCESS_GPIO, True)
     node.send_speaker_request(True)
     node.send_door_request(False)
     node.current_state_ = State.DOOR_OPENED
