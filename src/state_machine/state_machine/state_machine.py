@@ -70,7 +70,7 @@ class StateMachine(Node):
         # LED 
         self.led_client_ = self.create_client(self.LED_SERVICE_TYPE, self.LED_SERVICE_NAME)
         self.door_lock_client_.wait_for_service(30)
-        self.send_led_request(False)
+        self.send_led_request(self.LED_SUCCESS_GPIO, False)
 
         # Speaker
         self.speaker_client_ = self.create_client(self.SPEAKER_SERVICE_TYPE, self.SPEAKER_SERVICE_NAME)
@@ -140,7 +140,7 @@ class StateMachine(Node):
 
     def verification_failure_callback(self):
         self.send_led_request(self.LED_FAIL_GPIO, False)
-
+	    self.current_state_ = State.DOOR_CLOSED
         # Execute only once
         self.destroy_timer(self.verify_fail_timer_)
 
@@ -157,7 +157,6 @@ class StateMachine(Node):
             self.close_door_timer_ = self.create_timer(self.door_open_time_, self.close_door_callback)
         else:
             self.send_led_request(self.LED_FAIL_GPIO, True)
-            self.current_state_ = State.DOOR_CLOSED
             self.verify_fail_timer_ = self.create_timer(3, self.verification_failure_callback)
 
         # Execute only once
