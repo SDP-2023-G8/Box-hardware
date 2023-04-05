@@ -39,6 +39,8 @@ class StateMachine(Node):
 
     LED_SERVICE_NAME = "/led_srv"
     LED_SERVICE_TYPE = Led
+    LED_SUCCESS_GPIO = 14
+    LED_FAIL_GPIO = 15
 
     SPEAKER_SERVICE_NAME = "/speaker_srv"
     SPEAKER_SERVICE_TYPE = SetBool
@@ -68,7 +70,7 @@ class StateMachine(Node):
         # LED 
         self.led_client_ = self.create_client(self.LED_SERVICE_TYPE, self.LED_SERVICE_NAME)
         self.door_lock_client_.wait_for_service(30)
-        self.send_led_request(False)
+        self.send_led_request(self.LED_SUCCESS_GPIO, False)
 
         # Speaker
         self.speaker_client_ = self.create_client(self.SPEAKER_SERVICE_TYPE, self.SPEAKER_SERVICE_NAME)
@@ -112,9 +114,9 @@ class StateMachine(Node):
         self.get_logger().info("Sending a request to the door lock service")
         return door_fut
     
-    def send_led_request(self, data):
+    def send_led_request(self, gpio, data):
         led_req = self.LED_SERVICE_TYPE.Request()
-        led_req.gpio = 14
+        led_req.gpio = gpio
         led_req.led_state = data
         led_fut = self.led_client_.call_async(led_req)
         self.get_logger().info("Sending a request to the led service")
@@ -130,11 +132,17 @@ class StateMachine(Node):
     # Locks the door and changes the state
     def close_door_callback(self):
         self.send_door_request(True)
-        self.send_led_request(False)
+        self.send_led_request(self.LED_SUCCESS_GPIO, False)
         self.current_state_ = State.DOOR_CLOSED
 
         # Execute only once
         self.destroy_timer(self.close_door_timer_)
+
+    def verification_failure_callback(self):
+        self.send_led_request(self.LED_FAIL_GPIO, False)
+        self.current_state_ = State.DOOR_CLOSED
+        # Execute only once
+        self.destroy_timer(self.verify_fail_timer_)
 
     def verify_qr_callback(self, msg):
         self.get_logger().info("Verifying {0}".format(msg))
@@ -142,13 +150,14 @@ class StateMachine(Node):
         self.get_logger().info("Verification result: {0}".format(result))
         if result:
             self.send_door_request(False)
-            self.send_led_request(True)
+            self.send_led_request(self.LED_SUCCESS_GPIO, True)
             self.send_speaker_request(True)
             self.current_state_ = State.DOOR_OPENED
             print("Opening the door for {0} seconds".format(self.door_open_time_))
             self.close_door_timer_ = self.create_timer(self.door_open_time_, self.close_door_callback)
         else:
-            self.current_state_ = State.DOOR_CLOSED
+            self.send_led_request(self.LED_FAIL_GPIO, True)
+            self.verify_fail_timer_ = self.create_timer(3, self.verification_failure_callback)
 
         # Execute only once
         self.destroy_timer(self.verify_timer_)
@@ -174,7 +183,7 @@ class StateMachine(Node):
 def unlock_door():
     global node
     node.get_logger().info("unlock socket method called")
-    node.send_led_request(True)
+    node.send_led_request(node.LED_SUCCESS_GPIO, True)
     node.send_speaker_request(True)
     node.send_door_request(False)
     node.current_state_ = State.DOOR_OPENED
